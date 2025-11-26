@@ -45,4 +45,15 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // Scope untuk mengecek role user sebagai admin
+    public function scopeAdmin($query)
+    {
+        return $query->where('role', 'admin');
+    }
+    
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
 }
