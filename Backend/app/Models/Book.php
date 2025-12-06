@@ -18,7 +18,6 @@ class Book extends Model
         'tahun_terbit',
         'ukuran',
         'hal',
-        'poto_buku',
         'cover_buku',
         'kertas_cover',
         'kertas_isi',

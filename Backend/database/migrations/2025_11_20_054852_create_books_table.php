@@ -22,7 +22,6 @@ return new class extends Migration
             $table->integer('tahun_terbit');
             $table->string('ukuran', 50)->nullable();
             $table->integer('hal')->nullable();
-            $table->string('poto_buku', 255)->nullable();
             $table->string('cover_buku', 255)->nullable();
             $table->string('kertas_cover', 100)->nullable();
             $table->string('kertas_isi', 100)->nullable();
