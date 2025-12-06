@@ -224,7 +224,7 @@ function Home() {
                                 
                                 <div className="card-body p-0">
                                     <div className="text-muted small mb-1 text-uppercase fw-bold" style={{fontSize: '11px', letterSpacing: '0.5px'}}>
-                                        {book.author || 'Unknown Author'}
+                                        {book.author?.nama || 'Unknown Author'}
                                     </div>
                                     <h6 className="card-title fw-bold text-dark text-truncate mb-2" title={book.title}>
                                         {book.title}
