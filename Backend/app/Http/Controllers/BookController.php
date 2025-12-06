@@ -9,12 +9,13 @@ use App\Models\Genre;
 use App\Models\Segmentation;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class BookController extends Controller
 {
-    
-    
+
+
     public function index()
     {
         // Mengambil semua buku, sekaligus memuat relasi (segmentasi, kategori, author)
@@ -27,7 +28,7 @@ class BookController extends Controller
         ], 200);
     }
 
-    
+
     // Menambah buku baru ke etalase
     // Saatnya move on dan open new relationship!
 
@@ -46,8 +47,7 @@ class BookController extends Controller
                 'tahun_terbit' => 'required|integer|min:1900|max:' . date('Y'),
                 'ukuran' => 'nullable|string|max:50',
                 'hal' => 'nullable|integer',
-                'poto_buku' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', 
-                'cover_buku' => 'nullable|string|max:255',
+                'cover_buku' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'kertas_cover' => 'nullable|string|max:50',
                 'kertas_isi' => 'nullable|string|max:50',
                 'warna_cover' => 'nullable|string|max:50',
@@ -58,10 +58,10 @@ class BookController extends Controller
                 'catatan' => 'nullable|string',
             ]);
 
-             if ($request->hasFile('poto_buku')) {
+             if ($request->hasFile('cover_buku')) {
                 // Simpan gambar ke storage/app/public/photos
-                $path = $request->file('poto_buku')->store('photos', 'public');
-                $validatedData['poto_buku'] = $path;
+                $path = $request->file('cover_buku')->store('photos', 'public');
+                $validatedData['cover_buku'] = $path;
             }
 
             $book = Book::create($validatedData);
@@ -70,7 +70,7 @@ class BookController extends Controller
                 'message' => 'Buku berhasil ditambahkan (Status: Taken!)',
                 'data' => $book
             ], 201); // Kode status 201 Created
-            
+
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validasi gagal (Ditolak mentah-mentah!)',
@@ -79,7 +79,7 @@ class BookController extends Controller
         }
     }
 
-    
+
     // Menampilkan detail satu buku spesifik
     // Masih sering kepo sama profilnya dia yang dulu.
 
@@ -103,7 +103,7 @@ class BookController extends Controller
         ], 200);
     }
 
-   
+
     // Memperbarui data buku (CLBK - Cinta Lama Bersemi Kembali).
     // Nyoba perbaiki hubungan yang dulu pernah rusak. Bisa nggak ya?
 
@@ -128,19 +128,19 @@ class BookController extends Controller
                 'author_id' => 'required|exists:authors,id',
                 'penerbit' => 'required|string|max:100',
                 'tahun_terbit' => 'required|integer|min:1900|max:' . date('Y'),
-                'poto_buku' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'cover_buku' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'harga' => 'required|numeric|min:0',
             ]);
 
-             if ($request->hasFile('poto_buku')) {
+             if ($request->hasFile('cover_buku')) {
                 // 1. Hapus gambar lama semisal ada dari storage
-                if ($book->poto_buku && Storage::disk('public')->exists($book->poto_buku)) {
-                    Storage::disk('public')->delete($book->poto_buku);
+                if ($book->cover_buku && Storage::disk('public')->exists($book->cover_buku)) {
+                    Storage::disk('public')->delete($book->cover_buku);
                 }
 
                 // 2. Upload gambar baru dan simpan path-nya
-                $path = $request->file('poto_buku')->store('photos', 'public');
-                $validatedData['poto_buku'] = $path;
+                $path = $request->file('cover_buku')->store('photos', 'public');
+                $validatedData['cover_buku'] = $path;
             }
 
             // Data berhasil di-update, status hubungan diperbaiki!
@@ -175,8 +175,8 @@ class BookController extends Controller
             ], 404);
         }
 
-        if ($book->poto_buku && Storage::disk('public')->exists($book->poto_buku)) {
-            Storage::disk('public')->delete($book->poto_buku);
+        if ($book->cover_buku && Storage::disk('public')->exists($book->cover_buku)) {
+            Storage::disk('public')->delete($book->cover_buku);
         }
 
         $book->delete();
