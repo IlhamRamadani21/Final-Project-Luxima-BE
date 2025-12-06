@@ -11,12 +11,6 @@ function Home() {
     // Ambil data user dari LocalStorage
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user')) || { name: 'Guest' };
-
-    // Fetch Data Buku saat pertama kali load
-    useEffect(() => {
-        fetchBooks();
-    }, []);
-
     const fetchBooks = async () => {
         try {
             const response = await api.get('/books');
@@ -25,6 +19,12 @@ function Home() {
             console.error("Gagal ambil buku:", error);
         }
     };
+
+    // Fetch Data Buku saat pertama kali load
+    useEffect(() => {
+        fetchBooks();
+    }, []);
+
 
     const handleLogout = () => {
         localStorage.clear();
