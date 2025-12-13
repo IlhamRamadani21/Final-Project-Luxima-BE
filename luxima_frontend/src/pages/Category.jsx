@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 
 const Category = () => {
     // --- 1. DATA STRUKTUR KATEGORI ---
@@ -97,20 +97,10 @@ const Category = () => {
     // --- 2. STATE MANAGEMENT ---
     const [activeCategory, setActiveCategory] = useState(categoriesData[0]);
     const [activeSub, setActiveSub] = useState(categoriesData[0].subcategories[0]);
-    const navigate = useNavigate();
-
-    // Data User dari LocalStorage
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user')) || { name: 'Guest' };
 
     const handleCategoryClick = (category) => {
         setActiveCategory(category);
         setActiveSub(category.subcategories[0]); 
-    };
-
-    const handleLogout = () => {
-        localStorage.clear();
-        navigate('/login');
     };
 
     return (
@@ -118,64 +108,7 @@ const Category = () => {
         <div className="d-flex flex-column min-vh-100 w-100" style={{backgroundColor: '#f9f9f9', fontFamily: 'Segoe UI, sans-serif', overflowX: 'hidden'}}>
              
             {/* --- 1. TOP HEADER (FULL WIDTH) --- */}
-            <header className="text-white py-2 shadow-sm w-100" style={{ background: 'linear-gradient(90deg, #5D7B93 0%, #8FA3B5 100%)' }}>
-                <div className="container-fluid px-4 d-flex justify-content-between align-items-center w-100">
-                    <div className="fw-bold fs-3 text-white">Luxima</div>
-                    
-                    <div className="input-group d-none d-md-flex" style={{maxWidth: '600px', width: '100%'}}>
-                        <input type="text" className="form-control border-0 py-2" placeholder="Search..." style={{borderRadius: '4px 0 0 4px'}} />
-                        <button className="btn btn-light bg-white border-0" type="button" style={{borderRadius: '0 4px 4px 0'}}>
-                            <span style={{color: '#5D7B93', fontWeight: 'bold'}}>🔍</span>
-                        </button>
-                    </div>
-
-                    <div className="d-flex align-items-center gap-4">
-                        <div className="position-relative" style={{cursor: 'pointer'}}>
-                            <span style={{fontSize: '1.4rem'}}>🛍️</span>
-                            <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white" style={{fontSize: '0.7rem'}}>
-                                0
-                            </span>
-                        </div>
-
-                        {token ? (
-                            <div className="d-flex align-items-center gap-3">
-                                <span className="fw-bold text-white fs-6">Hi, {user.name}</span>
-                                <button 
-                                    onClick={handleLogout} 
-                                    className="btn btn-outline-light btn-sm px-3 py-1 fw-bold" 
-                                    style={{borderRadius: '6px', borderWidth: '1.5px'}}
-                                >
-                                    Logout
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="d-flex gap-2">
-                                <Link to="/login" className="btn btn-sm btn-light fw-bold">Login</Link>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </header>
-
-            {/* --- 2. NAVBAR (FULL WIDTH) --- */}
-            <nav className="bg-white shadow-sm py-3 sticky-top w-100" style={{zIndex: 100}}>
-                <div className="container-fluid px-4 w-100">
-                    <ul className="nav justify-content-center gap-5 fw-bold text-secondary fs-6 w-100 m-0 p-0">
-                        <li className="nav-item">
-                            <Link to="/" className="nav-link text-secondary p-0 hover-underline">Home</Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link to="/kategori" className="nav-link text-dark p-0 hover-underline">Kategori</Link>
-                        </li>
-                        <li className="nav-item">
-                            <span className="nav-link text-secondary p-0 hover-underline" style={{cursor:'pointer'}}>Best seller</span>
-                        </li>
-                        <li className="nav-item">
-                            <Link to="/about" className="nav-link text-secondary p-0 hover-underline">About Us</Link>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
+            <Navbar/>
             
             {/* --- 3. KONTEN UTAMA (FULL WIDTH 100%) --- */}
             <div className="container-fluid px-4 my-5 w-100" style={{maxWidth: '100%'}}>
