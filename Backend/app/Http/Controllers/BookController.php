@@ -16,27 +16,44 @@ class BookController extends Controller
 {
 
 
-    public function index()
+    public function index(Request $request)
     {
         // Mengambil semua buku, sekaligus memuat relasi (segmentasi, kategori, author)
-        // Hmm, banyak juga ya koleksinya.
         $books = Book::with(['segmentasi', 'kategori', 'author'])->get();
 
+        $query = Book::with('author'); 
+
+        // Cek apakah ada parameter 'search' dari frontend
+        if ($request->has('search') && $request->search != '') {
+            $keyword = $request->search;
+
+            $query->where(function ($q) use ($keyword) {
+                // Cari berdasarkan Judul
+                $q->where('judul', 'like', '%' . $keyword . '%')
+                  // Cari berdasarkan ISBN
+                  ->orWhere('isbn', 'like', '%' . $keyword . '%')
+                  // Cari berdasarkan Nama Penulis
+                  ->orWhereHas('author', function ($authorQuery) use ($keyword) {
+                      $authorQuery->where('nama', 'like', '%' . $keyword . '%');
+                  });
+            });
+        }
+
+        $books = $query->get();
+
         return response()->json([
-            'message' => 'Daftar buku berhasil diambil (Semua kenangan tersimpan rapi)',
+            'message' => 'Daftar buku berhasil diambil',
             'data' => $books
         ], 200);
     }
 
 
     // Menambah buku baru ke etalase
-    // Saatnya move on dan open new relationship!
 
     public function store(Request $request)
     {
         try {
             // Validasi data yang di input
-            // Pastikan dia orang yang tepat, jangan sampai salah pilih lagi!
             $validatedData = $request->validate([
                 'segmentasi_id' => 'required|exists:segmentations,id',
                 'judul' => 'required|string|max:255',
@@ -81,7 +98,6 @@ class BookController extends Controller
 
 
     // Menampilkan detail satu buku spesifik
-    // Masih sering kepo sama profilnya dia yang dulu.
 
     public function show($id)
     {
@@ -91,21 +107,20 @@ class BookController extends Controller
         if (!$book) {
             return response()->json([
                 'success' => false,
-                'message' => 'Buku tidak ditemukan (Orangnya udah menghilang dari peredaran)',
+                'message' => 'Buku tidak ditemukan',
                 'data' => null
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Detail buku berhasil diambil (Masih tersimpan rapi di hati)' . $id,
+            'message' => "Detail buku berhasil diambil: {$id}",
             'data' => $book
         ], 200);
     }
 
 
-    // Memperbarui data buku (CLBK - Cinta Lama Bersemi Kembali).
-    // Nyoba perbaiki hubungan yang dulu pernah rusak. Bisa nggak ya?
+    // Memperbarui data buku
 
     public function update(Request $request, $id)
     {
@@ -114,7 +129,7 @@ class BookController extends Controller
         if (!$book) {
             return response()->json([
                 'success' => false,
-                'message' => 'Buku tidak ditemukan (Orangnya udah nggak mau lagi diajak balikan)',
+                'message' => 'Buku tidak ditemukan',
                 'data' => null
             ], 404);
         }
@@ -143,25 +158,24 @@ class BookController extends Controller
                 $validatedData['cover_buku'] = $path;
             }
 
-            // Data berhasil di-update, status hubungan diperbaiki!
+            // Data berhasil di-update
             $book->update($validatedData);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data buku berhasil diperbarui (Hubungan membaik!)',
+                'message' => 'Data buku berhasil diperbarui',
                 'data' => $book
             ], 200);
 
         } catch (ValidationException $e) {
              return response()->json([
-                'message' => 'Validasi gagal (Ternyata masih ada masalah yang sama!)',
+                'message' => 'Validasi gagal',
                 'errors' => $e->errors()
             ], 422);
         }
     }
 
     // Menghapus buku dari etalase
-    // Saatnya hapus semua jejak digital dan kenangan pahit.
 
     public function destroy($id)
     {
@@ -170,7 +184,7 @@ class BookController extends Controller
         if (!$book) {
             return response()->json([
                 'success' => false,
-                'message' => 'Buku tidak ditemukan (Kenangannya udah hilang duluan)',
+                'message' => 'Buku tidak ditemukan',
                 'data' => null
             ], 404);
         }
@@ -183,7 +197,7 @@ class BookController extends Controller
 
         return response()->json([
              'success' => true,
-            'message' => 'Buku berhasil dihapus (Akhirnya beneran move on!)',
+            'message' => 'Buku berhasil dihapus',
             'data' => null
         ], 200);
     }
