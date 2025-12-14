@@ -7,6 +7,7 @@ import Login from './pages/login';
 import Register from './pages/Register';
 import About from './pages/About';
 import Category from './pages/Category';
+import Cart from './pages/Cart';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />      
         <Route path="/kategori" element={<Category />} /> 
+        <Route path="/keranjang" element={<Cart />} /> 
 
         {/* Jika sudah login, tidak bisa akses route di dalam sini */}
         <Route element={<GuestRoute />}>

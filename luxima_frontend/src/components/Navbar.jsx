@@ -73,7 +73,7 @@ const Navbar = () => {
                             <div className="dropdown">
                                 <button className="btn btn-sm text-white d-flex align-items-center gap-1 border-0 bg-transparent" type="button" data-bs-toggle="dropdown">
                                     <div className="position-relative" style={{cursor: 'pointer'}}>
-                                        <span style={{fontSize: '1.4rem'}}>🛍️</span>
+                                        <span style={{fontSize: '1.4rem'}}><Link to="/keranjang">🛍️</Link></span>
                                         {cart.length > 0 && (
                                             <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white" style={{fontSize: '0.7rem'}}>
                                                 {cart.length}
