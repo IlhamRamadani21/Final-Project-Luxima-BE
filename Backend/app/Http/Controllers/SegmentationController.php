@@ -10,70 +10,63 @@ class SegmentationController extends Controller
 {
     /**
      * Tampilkan semua segmen yang ada.
-     * Ini kayak nampilin koleksi kartu pokemon. Harus lengkap!
      */
     public function index()
     {
-        // Ambil semua data segmen, jangan ada yang ketinggalan!
+        // Ambil semua data segmen
         $segmentations = Segmentation::all();
 
         return response()->json([
-            'message' => 'Daftar segmentasi berhasil diambil (lengkap kap!)',
+            'message' => 'Daftar segmentasi berhasil diambil',
             'data' => $segmentations
         ], 200);
     }
 
     /**
      * Menyimpan (CREATE) segmen baru ke database.
-     * Hati-hati salah input, nanti databasenya ngambek.
      */
     public function store(Request $request)
     {
         try {
-            // Validasi dulu bro/sis, jangan main masukin data mentah aja kek dia😊
             $validatedData = $request->validate([
                 'segmentasi' => 'required|string|max:100|unique:segmentations,segmentasi',
             ]);
 
-            // Bikin segmen baru, mirip kayak bikin resep kue baru🎂
             $segmentation = Segmentation::create($validatedData);
 
             return response()->json([
-                'message' => 'Segmentasi berhasil ditambahkan (horee!🎉)',
+                'message' => 'Segmentasi berhasil ditambahkan',
                 'data' => $segmentation
-            ], 201); // Kode status 201 Created (Sukses Besar!)
+            ], 201); // Kode status 201 Created
 
         } catch (ValidationException $e) {
             return response()->json([
-                'message' => 'Validasi gagal (yah, error nih!)',
+                'message' => 'Validasi gagal',
                 'errors' => $e->errors()
-            ], 422); // Kode status 422 Unprocessable Entity (Datanya aneh!😒)
+            ], 422); // Kode status 422 Unprocessable Entity
         }
     }
 
 
-    // Mencari data yang dirasa cocok dan sefrekuensi.
-    // semoga cepet ketemu yak
+    // Mencari data
     public function show($id)
     {
-        // Cari segmennya. Kalau gak ketemu, yaudah, bilang gak ada. hidup ini di enakin aja wkwk
         $segmentation = Segmentation::find($id);
 
         if (!$segmentation) {
             return response()->json([
-                'message' => 'Segmentasi tidak ditemukan (zonk!)'
+                'message' => 'Segmentasi tidak ditemukan'
             ], 404);
         }
 
         return response()->json([
-            'message' => 'Detail segmentasi berhasil diambil (dapat informasinya!)',
+            'message' => 'Detail segmentasi berhasil diambil',
             'data' => $segmentation
         ], 200);
     }
 
 
     // Memperbaruidata segmen.
-    // udah kek dia aja suka memperbarui pasangannya
 
     public function update(Request $request, $id)
     {
@@ -81,28 +74,26 @@ class SegmentationController extends Controller
 
         if (!$segmentation) {
             return response()->json([
-                'message' => 'Segmentasi tidak ditemukan (lagi-lagi zonk!)'
+                'message' => 'Segmentasi tidak ditemukan'
             ], 404);
         }
 
         try {
-            // Pastikan Lagi apa dia beneran serius?
 
             $validatedData = $request->validate([
                 'segmentasi' => 'required|string|max:100|unique:segmentations,segmentasi,'.$segmentation->id,
             ]);
 
-            // Update datanya, semoga lancar jaya!
             $segmentation->update($validatedData);
 
             return response()->json([
-                'message' => 'Data segmentasi berhasil diperbarui (mulus kayak jalan tol!)',
+                'message' => 'Data segmentasi berhasil diperbarui',
                 'data' => $segmentation
             ], 200);
 
         } catch (ValidationException $e) {
              return response()->json([
-                'message' => 'Validasi gagal (error lagi, deh!)',
+                'message' => 'Validasi gagal',
                 'errors' => $e->errors()
             ], 422);
         }
@@ -110,7 +101,6 @@ class SegmentationController extends Controller
 
     /**
      * Menghapus Masa Lalu.
-     * Bye-bye data, selamat jalan!😎
      */
     public function destroy($id)
     {
@@ -118,14 +108,14 @@ class SegmentationController extends Controller
 
         if (!$segmentation) {
             return response()->json([
-                'message' => 'Segmentasi tidak ditemukan (hilang ditelan bumi!)'
+                'message' => 'Segmentasi tidak ditemukan'
             ], 404);
         }
 
         $segmentation->delete();
 
         return response()->json([
-            'message' => 'Segmentasi berhasil dihapus (berhasil move on! heheh)'
+            'message' => 'Segmentasi berhasil dihapus'
         ], 200);
     }
 }

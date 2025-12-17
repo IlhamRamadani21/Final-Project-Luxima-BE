@@ -14,31 +14,31 @@ class GenreSeeder extends Seeder
     public function run(): void
     {
         Genre::create([
-            "kategori"=>"pembelajaran",
+            "kategori"=>"Pembelajaran",
             "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas"
         ]);
         Genre::create([
-            "kategori"=>"fiksi anak",
+            "kategori"=>"Fiksi Anak",
             "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas"
         ]);
         Genre::create([
-            "kategori"=>"agama",
+            "kategori"=>"Agama",
             "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas"
         ]);
         Genre::create([
-            "kategori"=>"non fiksi anak",
+            "kategori"=>"Non Fiksi Anak",
             "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas"
         ]);
         Genre::create([
-            "kategori"=>"pengetahuan atau sejarah",
+            "kategori"=>"Pengetahuan atau Sejarah",
             "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas"
         ]);
         Genre::create([
-            "kategori"=>"keterampilan",
+            "kategori"=>"Keterampilan",
             "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas"
         ]);
         Genre::create([
-            "kategori"=>"pendidikan",
+            "kategori"=>"Pendidikan",
             "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas"
         ]);
     }
