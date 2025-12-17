@@ -10,22 +10,19 @@ class GenreController extends Controller
 {
 
     // Menampilkan daftar semua genre/kategori.
-    // Mencoba memahami semua error yang muncul kek memahami kemauan dia
 
     public function index()
     {
         // Mengambil semua data genre dari database
-        // Melihat semua output dengan pasrah. Semoga ada yang bener...
         $genres = Genre::all();
 
         return response()->json([
-            'message' => 'Daftar kategori berhasil diambil (Akhirnya tampil jugak)',
+            'message' => 'Daftar kategori berhasil diambil',
             'data' => $genres
         ], 200);
     }
 
     // Menambahkan data genre baru.
-    // Nambahin fitur baru, berharap nggak bikin eror yang aneh-aneh lagi.
 
     public function store(Request $request)
     {
@@ -37,17 +34,16 @@ class GenreController extends Controller
             ]);
 
             // Membuat instance genre baru dan menyimpannya
-            // Kode running tanpa error! Alhamdulillah...
             $genre = Genre::create($validatedData);
 
             return response()->json([
-                'message' => 'Kategori berhasil ditambahkan (Selamat! Fitur baru berjalan mulus!)',
+                'message' => 'Kategori berhasil ditambahkan',
                 'data' => $genre
             ], 201);
 
         } catch (ValidationException $e) {
             return response()->json([
-                'message' => 'Validasi gagal (Yah, kena error lagi...)',
+                'message' => 'Validasi gagal',
                 'errors' => $e->errors()
             ], 422);
         }
@@ -57,23 +53,21 @@ class GenreController extends Controller
     public function show($id)
     {
         // Mencari genre berdasarkan ID, Kalo enggak ditemukan mengembalikan 404
-        // Datanya kok nggak ada?! Jangan bilang harus ketik ulang yaa...
         $genre = Genre::find($id);
 
         if (!$genre) {
             return response()->json([
-                'message' => 'Kategori tidak ditemukan (Data hilang ditelan bumi)',
+                'message' => 'Kategori tidak ditemukan',
             ], 404);
         }
 
         return response()->json([
-            'message' => 'Detail kategori berhasil diambil (Akhirnya ketemu juga kamu!)',
+            'message' => 'Detail kategori berhasil diambil',
             'data' => $genre
         ], 200);
     }
 
     // Memperbarui data genre/kategori.
-    // Refactoring kode lama, berharap bisa balikan lagi uda terlalu lama soalnya.
 
     public function update(Request $request, $id)
     {
@@ -81,37 +75,34 @@ class GenreController extends Controller
 
         if (!$genre) {
             return response()->json([
-                'message' => 'Kategori tidak ditemukan (Data udah nggak bisa diselamatkan)',
+                'message' => 'Kategori tidak ditemukan',
             ], 404);
         }
 
         try {
             // Validasi input untuk update
-            // Coba perbaiki sikapnya di sini. Semoga berhasil...
             $validatedData = $request->validate([
                 'kategori' => 'required|string|max:100|unique:genres,kategori,'.$genre->id,
                 'deskripsi' => 'nullable|string|max:255',
             ]);
 
             // Memperbarui data yang sudah divalidasi
-            // Done! Semoga kali ini bener semua.
             $genre->update($validatedData);
 
             return response()->json([
-                'message' => 'Data kategori berhasil diperbarui (Tes lagi, tes lagi...)',
+                'message' => 'Data kategori berhasil diperbarui',
                 'data' => $genre
             ], 200);
 
         } catch (ValidationException $e) {
              return response()->json([
-                'message' => 'Validasi gagal (Ya ampun, *bug* baru muncul!)',
+                'message' => 'Validasi gagal',
                 'errors' => $e->errors()
             ], 422);
         }
     }
 
     // Menghapus genre dari database.
-    // Ketika sadar fitur ini cuma bikin kode makin ribet. Saatnya dihapus.
 
     public function destroy($id)
     {
@@ -119,14 +110,14 @@ class GenreController extends Controller
 
         if (!$genre) {
             return response()->json([
-                'message' => 'Kategori tidak ditemukan (Nggak ada yang bisa dihapus)',
+                'message' => 'Kategori tidak ditemukan',
             ], 404);
         }
 
         $genre->delete();
 
         return response()->json([
-            'message' => 'Kategori berhasil dihapus (Lega! Kode jadi lebih bersih)',
+            'message' => 'Kategori berhasil dihapus',
         ], 200);
     }
 }
