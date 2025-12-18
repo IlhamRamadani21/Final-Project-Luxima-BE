@@ -8,11 +8,10 @@ use Illuminate\Validation\ValidationException;
 
 class AuthorController extends Controller
 {
-    // Menampilkan daftar semua penulis.
     public function index()
     {
-        // Meng GET semua data penulis dari database
-        $authors = Author::all();
+        // Ambil data penulis + jumlah bukunya
+        $authors = Author::withCount('books')->latest()->get();
 
         return response()->json([
             'message' => 'Daftar penulis berhasil diambil',
@@ -20,42 +19,38 @@ class AuthorController extends Controller
         ], 200);
     }
 
-    // Menmbahkan penulis baru ke database.
     public function store(Request $request)
     {
         try {
-            // Validasi 'nama' wajib diisi
             $validatedData = $request->validate([
-                'nama' => 'required|string|max:255',
+                'nama' => 'required|string|max:255|unique:authors,nama',
+            ], [
+                'nama.required' => 'Nama penulis wajib diisi.',
+                'nama.unique' => 'Nama penulis ini sudah ada di database.',
             ]);
 
-            // Membuat instance penulis baru dan menyimpannya
             $author = Author::create($validatedData);
 
             return response()->json([
                 'message' => 'Penulis berhasil ditambahkan',
                 'data' => $author
-            ], 201); // Kode status 201 ditambahlkan
+            ], 201);
 
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validasi gagal',
-                'errors' => $e->errors()
+                'data' => $e->errors()
             ], 422);
         }
     }
 
-    // Menampilkan detail satu penulis spesifik.
-
     public function show($id)
     {
-        // Mencari penulis berdasarkan ID, kalo enggak ditemukan mengembalikan 404
-        $author = Author::find($id);
+        // Load relasi books agar bisa ditampilkan di halaman edit
+        $author = Author::with('books')->find($id);
 
         if (!$author) {
-            return response()->json([
-                'message' => 'Penulis tidak ditemukan'
-            ], 404);
+            return response()->json(['message' => 'Penulis tidak ditemukan'], 404);
         }
 
         return response()->json([
@@ -64,24 +59,22 @@ class AuthorController extends Controller
         ], 200);
     }
 
-    // Memperbarui data penulis.
     public function update(Request $request, $id)
     {
         $author = Author::find($id);
 
         if (!$author) {
-            return response()->json([
-                'message' => 'Penulis tidak ditemukan'
-            ], 404);
+            return response()->json(['message' => 'Penulis tidak ditemukan'], 404);
         }
 
         try {
-            // Validasi input untuk update
             $validatedData = $request->validate([
-                'nama' => 'required|string|max:255',
+                // Unique ignore ID saat ini
+                'nama' => 'required|string|max:255|unique:authors,nama,'.$author->id,
+            ], [
+                'nama.unique' => 'Nama penulis ini sudah digunakan.',
             ]);
 
-            // Memperbarui data yang udah di cek
             $author->update($validatedData);
 
             return response()->json([
@@ -97,15 +90,20 @@ class AuthorController extends Controller
         }
     }
 
-    // Menghapus data penulis.
     public function destroy($id)
     {
         $author = Author::find($id);
 
         if (!$author) {
+            return response()->json(['message' => 'Penulis tidak ditemukan'], 404);
+        }
+
+        // Cek apakah penulis memiliki buku
+        // Jika penulis memiliki buku, tolak penghapusan.
+        if ($author->books()->count() > 0) {
             return response()->json([
-                'message' => 'Penulis tidak ditemukan'
-            ], 404);
+                'message' => 'Gagal menghapus: Penulis ini masih memiliki buku yang terdaftar. Hapus bukunya terlebih dahulu.'
+            ], 409); // 409 Conflict
         }
 
         $author->delete();

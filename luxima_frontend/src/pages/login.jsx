@@ -32,12 +32,11 @@ const Login = () => {
             localStorage.setItem('token', response.data.access_token);
             localStorage.setItem('user', JSON.stringify(response.data.user));
 
-            // 2. Redirect berdasarkan role (Sementara ke Home dulu)
-            // const role = response.data.user.role;
-            // if(role === 'admin') navigate('/admin/dashboard'); else navigate('/');
+            // 2. Redirect berdasarkan role
+            const role = response.data.user.role;
+            if(role === 'admin') navigate('/admin/dashboard'); else navigate('/');
             
             alert('Login Berhasil!');
-            navigate('/'); 
 
         } catch (err) {
             // Tangkap error dari backend

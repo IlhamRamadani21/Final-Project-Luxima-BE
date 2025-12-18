@@ -156,15 +156,13 @@ const BookForm = () => {
             console.error("Error submit:", error);
             
             if (error.response && error.response.status === 422) {
-                // 1. AMBIL LIST ERROR
-                // Cek 'errors' (standar Laravel) ATAU 'data' (kodingan controller Anda saat ini)
+                // AMBIL LIST ERROR
                 const errorData = error.response.data?.errors || error.response.data?.data || {};
                 
-                // 2. Set error per field (agar input jadi merah)
+                // Set error per field
                 setValidationErrors(errorData);
 
-                // 3. BUAT PESAN ERROR YANG LEBIH JELAS UNTUK GLOBAL ALERT
-                // Kita ambil semua pesan error dan jadikan array flat
+                // Set error global
                 const errorMessages = Object.values(errorData).flat();
 
                 if (errorMessages.length > 0) {

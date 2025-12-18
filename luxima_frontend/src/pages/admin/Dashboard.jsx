@@ -18,7 +18,6 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                // Kita panggil semua endpoint secara paralel
                 const [resBooks, resAuthors, resGenres, resSegments] = await Promise.all([
                     api.get('/books'),
                     api.get('/authors'),
@@ -98,33 +97,33 @@ const Dashboard = () => {
                     title="Total Buku" 
                     count={stats.books} 
                     icon={<BookOpen />} 
-                    color="#3b82f6" // Blue
+                    color="#3b82f6"
                     link="/admin/books"
                 />
                 <StatCard 
                     title="Total Penulis" 
                     count={stats.authors} 
                     icon={<Users />} 
-                    color="#10b981" // Emerald
+                    color="#10b981"
                     link="/admin/authors"
                 />
                 <StatCard 
                     title="Kategori" 
                     count={stats.genres} 
                     icon={<Tags />} 
-                    color="#f59e0b" // Amber
+                    color="#f59e0b"
                     link="/admin/genres"
                 />
                 <StatCard 
                     title="Segmentasi" 
                     count={stats.segments} 
                     icon={<TrendingUp />} 
-                    color="#8b5cf6" // Violet
+                    color="#8b5cf6"
                     link="/admin/segmentations"
                 />
             </div>
 
-            {/* Quick Actions / Recent Section (Placeholder untuk pengembangan) */}
+            {/* Quick Actions / Recent Section (Placeholder) */}
             <div className="row">
                 <div className="col-lg-8">
                     <div className="card border-0 shadow-lg rounded-4 overflow-hidden">
