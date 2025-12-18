@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import { getSegmentations } from '../_services/segmentations';
 import { getCategories } from '../_services/categories';
-import { getAuthors } from '../_services/author';
-import { getBooks } from '../_services/book';
+
 
 
 const Category = () => {
@@ -102,18 +101,16 @@ const Category = () => {
     // --- 2. STATE MANAGEMENT ---
     const [activeCategory, setActiveCategory] = useState(categoriesData[0]);
     const [activeSub, setActiveSub] = useState(categoriesData[0].subcategories[0]);
-    const [books, setBooks]= useState([]);
-    const [authors, setAuthors]= useState([]);
+
     const [categories, setCategories]= useState([]);
     const [segmentations, setSegmentations]= useState([]);
 
     useEffect(()=>{
 
        const fetchData = async ()=>{
-            const [booksData, authorsData, categoriesData, segmentationsData] = await Promise.all([getBooks(), getAuthors(), getCategories(), getSegmentations()]);
+            const [categoriesData, segmentationsData] = await Promise.all([getCategories(), getSegmentations()]);
 
-            setBooks(booksData);
-            setAuthors(authorsData);
+  
             setCategories(categoriesData);
             setSegmentations(segmentationsData);
         }
@@ -125,8 +122,7 @@ const Category = () => {
         setActiveSub(category.subcategories[0]); 
     };
 
-    console.log(books);
-    console.log(authors);
+    
     console.log(categories);
     console.log(segmentations);
     
