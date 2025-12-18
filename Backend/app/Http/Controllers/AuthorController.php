@@ -15,6 +15,7 @@ class AuthorController extends Controller
         $authors = Author::all();
 
         return response()->json([
+            'jumlahData' => $authors->count(),
             'message' => 'Daftar penulis berhasil diambil',
             'data' => $authors
         ], 200);

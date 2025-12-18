@@ -11,12 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('genres', function (Blueprint $table) {
-            $table->id();
-            $table->string('kategori', 255);
-            $table->text('deskripsi')->nullable();
-            $table->timestamps();
-        });
+       Schema::create('genres', function (Blueprint $table) {
+        $table->id();
+        $table->string('kategori', 255);
+        $table->foreignId('segmentasi_id')
+        ->constrained('segmentations')
+        ->onDelete('cascade');
+        $table->text('deskripsi')->nullable();
+
+        $table->timestamps();
+    });
     }
 
     /**

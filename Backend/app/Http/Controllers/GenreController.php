@@ -14,15 +14,15 @@ class GenreController extends Controller
     public function index()
     {
         // Mengambil semua data genre dari database
-        $genres = Genre::all();
+        $genres = Genre::with('books')->get();
 
         return response()->json([
+            'jumlahData' => $genres->count(),
             'message' => 'Daftar kategori berhasil diambil',
             'data' => $genres
         ], 200);
     }
 
-    // Menambahkan data genre baru.
 
     public function store(Request $request)
     {
