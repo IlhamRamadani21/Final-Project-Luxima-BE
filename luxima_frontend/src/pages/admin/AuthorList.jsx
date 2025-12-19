@@ -1,55 +1,55 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
    Edit,
    Trash2,
    Plus,
    Search,
-   BookOpen,
+   Users,
+   AlertCircle,
+   CheckCircle,
+   Book,
    ChevronLeft,
    ChevronRight,
    ChevronsLeft,
    ChevronsRight,
    Filter,
-   AlertCircle,
-   CheckCircle,
 } from "lucide-react";
 import api from "../../api";
 
-const BookList = () => {
-   // --- STATE ---
-   const [books, setBooks] = useState([]);
+const AuthorList = () => {
+   // --- STATE UTAMA ---
+   const [authors, setAuthors] = useState([]);
    const [loading, setLoading] = useState(true);
    const [searchTerm, setSearchTerm] = useState("");
+
+   // --- STATE PAGINATION ---
    const [currentPage, setCurrentPage] = useState(1);
-   const [itemsPerPage, setItemsPerPage] = useState(10);
+   const [itemsPerPage, setItemsPerPage] = useState(10); // Default 10 data per halaman
+
+   // --- STATE NOTIFIKASI ---
    const [error, setError] = useState(null);
    const [success, setSuccess] = useState(null);
 
    // --- FETCH DATA ---
-   const fetchBooks = useCallback(async () => {
+   const fetchAuthors = useCallback(async () => {
       setLoading(true);
       try {
-         const response = await api.get("/books", {
-            params: { search: searchTerm },
-         });
-         setBooks(response.data.data || []);
+         const response = await api.get("/authors");
+         setAuthors(response.data.data || []);
       } catch (err) {
          console.log(err);
-         setError("Gagal mengambil data buku.");
+         setError("Gagal mengambil data penulis.");
       } finally {
          setLoading(false);
       }
-   }, [searchTerm]);
+   }, []);
 
    useEffect(() => {
-      const delayDebounceFn = setTimeout(() => {
-         fetchBooks();
-      }, 500);
-      return () => clearTimeout(delayDebounceFn);
-   }, [fetchBooks]);
+      fetchAuthors();
+   }, [fetchAuthors]);
 
-   // Reset ke halaman 1 jika filter berubah
+   // Reset ke Halaman 1 jika user mencari data atau mengubah jumlah baris
    useEffect(() => {
       setCurrentPage(1);
    }, [searchTerm, itemsPerPage]);
@@ -64,26 +64,40 @@ const BookList = () => {
 
    // --- DELETE HANDLER ---
    const handleDelete = async (id) => {
-      if (!window.confirm("Yakin ingin menghapus buku ini?")) return;
+      if (!window.confirm("Yakin ingin menghapus penulis ini?")) return;
+
+      setError(null);
+      setSuccess(null);
+
       try {
-         await api.delete(`/books/${id}`);
-         setBooks((prevBooks) => prevBooks.filter((b) => b.id !== id));
-         setSuccess("Buku berhasil dihapus.");
+         await api.delete(`/authors/${id}`);
+         setAuthors((prev) => prev.filter((a) => a.id !== id));
+         setSuccess("Penulis berhasil dihapus.");
          window.scrollTo({ top: 0, behavior: "smooth" });
       } catch (err) {
-         console.log(err);
-         setError("Terjadi kesalahan.");
+         const msg = err.response?.data?.message || "Gagal menghapus penulis.";
+         setError(msg);
          window.scrollTo({ top: 0, behavior: "smooth" });
       }
    };
 
-   // --- LOGIC PAGINATION ---
+   // Filter Data (Client Side)
+   const filteredAuthors = useMemo(() => {
+      return authors.filter((author) =>
+         author.nama.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+   }, [authors, searchTerm]);
+
+   // Hitung Index
+   const totalPages = Math.ceil(filteredAuthors.length / itemsPerPage);
    const indexOfLastItem = currentPage * itemsPerPage;
    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-   const currentItems = books.slice(indexOfFirstItem, indexOfLastItem);
-   const totalPages = Math.ceil(books.length / itemsPerPage);
+   const currentItems = filteredAuthors.slice(
+      indexOfFirstItem,
+      indexOfLastItem
+   );
 
-   // Fungsi Navigasi Tambahan
+   // Fungsi Navigasi
    const goToFirstPage = () => setCurrentPage(1);
    const goToLastPage = () => setCurrentPage(totalPages);
    const goToPrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
@@ -92,27 +106,26 @@ const BookList = () => {
    const goToPage = (page) => setCurrentPage(page);
 
    return (
-      <div className="container-fluid px-2 px-md-4 py-4 bg-light min-vh-100 font-sans">
-         {/* Header */}
-         <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3">
+      <div className="container-fluid px-4 py-4 bg-light min-vh-100 font-sans">
+         {/* HEADER PAGE */}
+         <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
             <div>
                <h2 className="h4 fw-bold text-dark m-0 d-flex align-items-center">
-                  <BookOpen className="me-2 text-primary" size={24} /> Manajemen
-                  Buku
+                  <Users className="me-2 text-primary" size={24} /> Data Penulis
                </h2>
                <p className="text-muted small m-0">
-                  Kelola katalog buku Luxima
+                  Kelola daftar penulis buku
                </p>
             </div>
             <Link
-               to="/admin/books/create"
-               className="btn btn-primary fw-bold shadow-sm d-flex align-items-center justify-content-center px-4 py-2"
+               to="/admin/authors/create"
+               className="btn btn-primary fw-bold shadow-sm d-flex align-items-center px-4"
             >
-               <Plus size={18} className="me-2" /> Tambah Buku
+               <Plus size={18} className="me-2" /> Tambah Penulis
             </Link>
          </div>
 
-         {/* Alerts */}
+         {/* NOTIFIKASI */}
          {(success || error) && (
             <div
                className={`alert ${
@@ -139,33 +152,36 @@ const BookList = () => {
             </div>
          )}
 
+         {/* CARD UTAMA */}
          <div className="card shadow-sm border-0 rounded-4 overflow-hidden">
-            {/* Toolbar */}
-            <div className="card-header bg-white py-3 px-3 border-bottom">
-               <div className="row g-3 align-items-center">
-                  <div className="col-12 col-md-auto d-flex align-items-center">
+            {/* TOOLBAR (Search & Rows Per Page) */}
+            <div className="card-header bg-white py-3 px-4 border-bottom">
+               <div className="row g-3 align-items-center justify-content-between">
+                  {/* KIRI: Rows Per Page Selector */}
+                  <div className="col-auto d-flex align-items-center">
                      <span className="text-muted small me-2 fw-semibold">
                         Tampilkan
                      </span>
                      <select
                         className="form-select form-select-sm border-secondary border-opacity-25"
-                        style={{ width: "80px", cursor: "pointer" }}
+                        style={{ width: "70px", cursor: "pointer" }}
                         value={itemsPerPage}
                         onChange={(e) =>
                            setItemsPerPage(Number(e.target.value))
                         }
                      >
-                        {[5, 10, 20, 50].map((v) => (
-                           <option key={v} value={v}>
-                              {v}
-                           </option>
-                        ))}
+                        <option value={5}>5</option>
+                        <option value={10}>10</option>
+                        <option value={20}>20</option>
+                        <option value={50}>50</option>
                      </select>
                      <span className="text-muted small ms-2 fw-semibold">
-                        data
+                        baris
                      </span>
                   </div>
-                  <div className="col-12 col-md-5 ms-md-auto">
+
+                  {/* KANAN: Search Bar */}
+                  <div className="col-12 col-md-4">
                      <div className="input-group input-group-sm shadow-sm">
                         <span className="input-group-text bg-white border-end-0">
                            <Search size={16} className="text-muted" />
@@ -173,7 +189,7 @@ const BookList = () => {
                         <input
                            type="text"
                            className="form-control border-start-0 bg-white"
-                           placeholder="Cari judul, ISBN, atau penulis..."
+                           placeholder="Cari nama penulis..."
                            value={searchTerm}
                            onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -182,41 +198,39 @@ const BookList = () => {
                </div>
             </div>
 
+            {/* TABLE */}
             <div className="card-body p-0">
                <div className="table-responsive">
                   <table className="table table-hover align-middle mb-0">
-                     <thead className="bg-light d-none d-lg-table-header-group">
+                     <thead className="bg-light">
                         <tr>
                            <th
                               className="px-4 py-3 text-secondary small fw-bold text-uppercase"
-                              style={{ width: "100px" }}
+                              style={{ width: "50px" }}
                            >
-                              Cover
+                              No
                            </th>
                            <th className="px-4 py-3 text-secondary small fw-bold text-uppercase">
-                              Detail Buku
+                              Nama Penulis
                            </th>
                            <th className="px-4 py-3 text-secondary small fw-bold text-uppercase">
-                              Kategori
-                           </th>
-                           <th className="px-4 py-3 text-secondary small fw-bold text-uppercase">
-                              Harga & Stok
+                              Jumlah Buku
                            </th>
                            <th className="px-4 py-3 text-secondary small fw-bold text-uppercase text-end">
                               Aksi
                            </th>
                         </tr>
                      </thead>
-                     <tbody className="border-top-0">
+                     <tbody>
                         {loading ? (
                            <tr>
-                              <td colSpan="5" className="text-center py-5">
+                              <td colSpan="4" className="text-center py-5">
                                  <div
                                     className="spinner-border text-primary spinner-border-sm me-2"
                                     role="status"
                                  ></div>
                                  <span className="text-muted small">
-                                    Memuat data buku...
+                                    Memuat data...
                                  </span>
                               </td>
                            </tr>
@@ -236,107 +250,39 @@ const BookList = () => {
                               </td>
                            </tr>
                         ) : (
-                           currentItems.map((book) => (
-                              <tr
-                                 key={book.id}
-                                 className="d-block d-lg-table-row border-bottom py-3 py-lg-0"
-                              >
-                                 {/* Cover */}
-                                 <td className="px-4 py-2 py-lg-3 d-inline-block d-lg-table-cell text-center text-lg-start align-middle">
-                                    <div
-                                       className="rounded shadow-sm border overflow-hidden bg-light"
-                                       style={{ width: "60px", height: "85px" }}
-                                    >
-                                       <img
-                                          src={
-                                             book.cover_buku
-                                                ? `http://127.0.0.1:8000/storage/${book.cover_buku}`
-                                                : "https://via.placeholder.com/60x85?text=No+Cover"
-                                          }
-                                          className="w-100 h-100 object-fit-cover"
-                                          alt={book.judul}
-                                          onError={(e) => {
-                                             e.target.src =
-                                                "https://via.placeholder.com/60x85?text=Err+Img";
-                                          }}
-                                       />
-                                    </div>
+                           currentItems.map((author, index) => (
+                              <tr key={author.id} className="border-bottom">
+                                 <td className="px-4 py-3 text-muted">
+                                    {indexOfFirstItem + index + 1}
                                  </td>
-
-                                 {/* Detail */}
-                                 <td className="px-4 py-2 py-lg-3 d-block d-lg-table-cell align-middle">
-                                    <div
-                                       className="fw-bold text-dark mb-1"
-                                       style={{
-                                          fontSize: "0.95rem",
-                                          lineHeight: "1.3",
-                                       }}
-                                    >
-                                       {book.judul}
-                                    </div>
-                                    <div className="d-flex flex-wrap gap-2 mt-1">
-                                       <span
-                                          className="badge bg-light text-secondary border fw-normal"
-                                          style={{ fontSize: "0.7rem" }}
-                                       >
-                                          ISBN: {book.isbn}
-                                       </span>
-                                       <span
-                                          className="badge bg-info bg-opacity-10 text-info border border-info border-opacity-10"
-                                          style={{ fontSize: "0.7rem" }}
-                                       >
-                                          {book.author?.nama || "Luxima"}
-                                       </span>
-                                    </div>
+                                 <td className="px-4 py-3 fw-bold text-dark">
+                                    {author.nama}
                                  </td>
-
-                                 {/* Kategori */}
-                                 <td className="px-4 py-2 py-lg-3 d-inline-block d-lg-table-cell align-middle">
+                                 <td className="px-4 py-3">
                                     <span
-                                       className="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 px-3 py-2"
-                                       style={{ fontSize: "0.75rem" }}
+                                       className={`badge rounded-pill px-3 py-2 ${
+                                          author.books_count > 0
+                                             ? "bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10"
+                                             : "bg-secondary bg-opacity-10 text-secondary"
+                                       }`}
                                     >
-                                       {book.kategori?.kategori || "Umum"}
+                                       <Book size={14} className="me-1" />
+                                       {author.books_count || 0} Buku
                                     </span>
                                  </td>
-
-                                 {/* Harga */}
-                                 <td className="px-4 py-2 py-lg-3 d-inline-block d-lg-table-cell align-middle">
-                                    <div
-                                       className="fw-bold text-success"
-                                       style={{ fontSize: "0.9rem" }}
-                                    >
-                                       Rp{" "}
-                                       {Number(book.harga).toLocaleString(
-                                          "id-ID"
-                                       )}
-                                    </div>
-                                    <div className="text-muted small">
-                                       Stok:{" "}
-                                       <span
-                                          className={`fw-bold ${
-                                             Number(book.catatan) > 0
-                                                ? "text-dark"
-                                                : "text-danger"
-                                          }`}
-                                       >
-                                          {book.catatan || "0"}
-                                       </span>
-                                    </div>
-                                 </td>
-
-                                 {/* Aksi */}
-                                 <td className="px-4 py-3 py-lg-3 d-block d-lg-table-cell text-lg-end align-middle">
-                                    <div className="d-flex justify-content-lg-end gap-2">
+                                 <td className="px-4 py-3 text-end">
+                                    <div className="d-flex justify-content-end gap-2">
                                        <Link
-                                          to={`/admin/books/edit/${book.id}`}
+                                          to={`/admin/authors/edit/${author.id}`}
                                           className="btn btn-outline-warning btn-sm shadow-sm p-2 rounded"
                                           title="Edit"
                                        >
                                           <Edit size={16} />
                                        </Link>
                                        <button
-                                          onClick={() => handleDelete(book.id)}
+                                          onClick={() =>
+                                             handleDelete(author.id)
+                                          }
                                           className="btn btn-outline-danger btn-sm shadow-sm p-2 rounded"
                                           title="Hapus"
                                        >
@@ -352,27 +298,24 @@ const BookList = () => {
                </div>
             </div>
 
-            {/* Footer Pagination (DIPERBARUI) */}
-            {books.length > 0 && (
+            {/* FOOTER PAGINATION */}
+            {filteredAuthors.length > 0 && (
                <div className="card-footer bg-white py-3 px-4 border-top">
                   <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
                      {/* Info Data */}
-                     <span className="text-muted small text-center text-md-start">
-                        Menampilkan
+                     <span className="text-muted small">
+                        Menampilkan{" "}
                         <span className="fw-bold text-dark">
-                           {" "}
-                           {indexOfFirstItem + 1}{" "}
-                        </span>
-                        -
+                           {indexOfFirstItem + 1}
+                        </span>{" "}
+                        -{" "}
                         <span className="fw-bold text-dark">
-                           {" "}
-                           {Math.min(indexOfLastItem, books.length)}{" "}
-                        </span>
-                        dari
+                           {Math.min(indexOfLastItem, filteredAuthors.length)}
+                        </span>{" "}
+                        dari{" "}
                         <span className="fw-bold text-dark">
-                           {" "}
-                           {books.length}{" "}
-                        </span>
+                           {filteredAuthors.length}
+                        </span>{" "}
                         data
                      </span>
 
@@ -412,6 +355,7 @@ const BookList = () => {
                            {/* Page Numbers */}
                            {[...Array(totalPages)].map((_, i) => {
                               const page = i + 1;
+                              // Tampilkan halaman Pertama, Terakhir, dan tetangga Current Page
                               if (
                                  page === 1 ||
                                  page === totalPages ||
@@ -487,4 +431,4 @@ const BookList = () => {
    );
 };
 
-export default BookList;
+export default AuthorList;
