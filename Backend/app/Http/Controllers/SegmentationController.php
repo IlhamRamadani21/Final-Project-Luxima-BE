@@ -13,7 +13,7 @@ class SegmentationController extends Controller
      public function index()
     {
         // Meng GET semua data segmentasi dari database
-        $segmentations = Segmentation::with('categories')->get();
+        $segmentations = Segmation::with('genres')->get();
 
         return response()->json([
             'jumlahData' => $segmentations->count(),
