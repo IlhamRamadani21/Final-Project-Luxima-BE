@@ -35,7 +35,7 @@ class SegmentationController extends Controller
             $segmentations = Segmentation::create($validatedData);
 
             return response()->json([
-                'message' => 'Penulis berhasil ditambahkan',
+                'message' => 'Segmentasi berhasil ditambahkan',
                 'data' => $segmentations
             ], 201); // Kode status 201 ditambahlkan
 
@@ -56,7 +56,7 @@ class SegmentationController extends Controller
 
         if (!$segmentations) {
             return response()->json([
-                'message' => 'Penulis tidak ditemukan'
+                'message' => 'Segmentasi tidak ditemukan'
             ], 404);
         }
 
@@ -73,7 +73,7 @@ class SegmentationController extends Controller
 
         if (!$segmentations) {
             return response()->json([
-                'message' => 'Penulis tidak ditemukan'
+                'message' => 'Segmentasi tidak ditemukan'
             ], 404);
         }
 
@@ -106,14 +106,14 @@ class SegmentationController extends Controller
 
         if (!$segmentations) {
             return response()->json([
-                'message' => 'Penulis tidak ditemukan'
+                'message' => 'Segmentasi tidak ditemukan'
             ], 404);
         }
 
         $segmentations->delete();
 
         return response()->json([
-            'message' => 'Penulis berhasil dihapus'
+            'message' => 'Segmentasi berhasil dihapus'
         ], 200);
     }
 }
