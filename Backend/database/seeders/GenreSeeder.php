@@ -15,31 +15,38 @@ class GenreSeeder extends Seeder
     {
         Genre::create([
             "kategori"=>"Pembelajaran",
-            "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas"
+            "segmentasi_id"=>1,
+            "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas",
         ]);
         Genre::create([
             "kategori"=>"Fiksi Anak",
-            "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas"
+            "segmentasi_id"=>1,
+            "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas",
         ]);
         Genre::create([
             "kategori"=>"Agama",
-            "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas"
+            "segmentasi_id"=>1,
+            "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas",
         ]);
         Genre::create([
             "kategori"=>"Non Fiksi Anak",
-            "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas"
+            "segmentasi_id"=>2,
+            "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas",
         ]);
         Genre::create([
             "kategori"=>"Pengetahuan atau Sejarah",
-            "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas"
+            "segmentasi_id"=>3,
+            "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas",
         ]);
         Genre::create([
             "kategori"=>"Keterampilan",
-            "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas"
+            "segmentasi_id"=>2,
+            "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas",
         ]);
         Genre::create([
             "kategori"=>"Pendidikan",
-            "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas"
+            "segmentasi_id"=>3,
+            "deskripsi"=>"klncalnvioavoiansvoasnvpanvspnas",
         ]);
     }
 }

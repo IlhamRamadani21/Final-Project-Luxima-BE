@@ -28,6 +28,7 @@ return new class extends Migration
             $table->string('warna_cover', 50)->nullable();
             $table->string('warna_isi', 50)->nullable();
             $table->integer('harga')->unsigned();
+            $table->integer('stok')->unsigned();
             $table->date('tgl_surat_keputusan')->nullable();
             $table->string('no_surat_puskurbuk', 255)->nullable();
             $table->integer('catatan')->nullable();

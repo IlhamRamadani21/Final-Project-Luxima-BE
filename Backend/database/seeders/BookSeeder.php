@@ -28,6 +28,7 @@ class BookSeeder extends Seeder
             "warna_cover"=>"Full Colour",
             "warna_isi"=>"Full Colour",
             "harga"=>29000,
+            "stok"=>10,
             "no_surat_puskurbuk"=>"1",
             "catatan"=>469,
 
@@ -49,6 +50,7 @@ class BookSeeder extends Seeder
             "warna_cover"=>"Full Colour",
             "warna_isi"=>"Full Colour",
             "harga"=>49000,
+            "stok"=>10,
             "tgl_surat_keputusan"=>"2017-08-13",
             "no_surat_puskurbuk"=>"SK. B498/H3.3/PB/2017",
             "catatan"=>811,
