@@ -1,18 +1,13 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
    Edit,
    Trash2,
    Plus,
-   Search,
-   Users,
+   Tags,
    AlertCircle,
    CheckCircle,
    Book,
-   ChevronLeft,
-   ChevronRight,
-   ChevronsLeft,
-   ChevronsRight,
    Filter,
 } from "lucide-react";
 import api from "../../api";
@@ -20,44 +15,38 @@ import api from "../../api";
 import TableHeader from "../../components/common/TableHeader";
 import Pagination from "../../components/common/Pagination";
 
-const AuthorList = () => {
-   // --- STATE UTAMA ---
-   const [authors, setAuthors] = useState([]);
+const GenreList = () => {
+   // --- STATE ---
+   const [genres, setGenres] = useState([]);
    const [loading, setLoading] = useState(true);
    const [searchTerm, setSearchTerm] = useState("");
-
-   // --- STATE PAGINATION ---
    const [currentPage, setCurrentPage] = useState(1);
-   const [itemsPerPage, setItemsPerPage] = useState(10); // Default 10 data per halaman
-
-   // --- STATE NOTIFIKASI ---
+   const [itemsPerPage, setItemsPerPage] = useState(10);
    const [error, setError] = useState(null);
    const [success, setSuccess] = useState(null);
 
    // --- FETCH DATA ---
-   const fetchAuthors = useCallback(async () => {
+   const fetchGenres = useCallback(async () => {
       setLoading(true);
       try {
-         const response = await api.get("/authors");
-         setAuthors(response.data.data || []);
+         const response = await api.get("/genres");
+         setGenres(response.data.data || []);
       } catch (err) {
          console.log(err);
-         setError("Gagal mengambil data penulis.");
+         setError("Gagal mengambil data kategori.");
       } finally {
          setLoading(false);
       }
    }, []);
 
    useEffect(() => {
-      fetchAuthors();
-   }, [fetchAuthors]);
+      fetchGenres();
+   }, [fetchGenres]);
 
-   // Reset ke Halaman 1 jika user mencari data atau mengubah jumlah baris
    useEffect(() => {
       setCurrentPage(1);
    }, [searchTerm, itemsPerPage]);
 
-   // Auto hide notifikasi
    useEffect(() => {
       if (success) {
          const timer = setTimeout(() => setSuccess(null), 3000);
@@ -67,59 +56,53 @@ const AuthorList = () => {
 
    // --- DELETE HANDLER ---
    const handleDelete = async (id) => {
-      if (!window.confirm("Yakin ingin menghapus penulis ini?")) return;
-
+      if (!window.confirm("Yakin ingin menghapus kategori ini?")) return;
       setError(null);
       setSuccess(null);
-
       try {
-         await api.delete(`/authors/${id}`);
-         setAuthors((prev) => prev.filter((a) => a.id !== id));
-         setSuccess("Penulis berhasil dihapus.");
-         window.scrollTo({ top: 0, behavior: "smooth" });
+         await api.delete(`/genres/${id}`);
+         setGenres((prev) => prev.filter((g) => g.id !== id));
+         setSuccess("Kategori berhasil dihapus.");
       } catch (err) {
-         const msg = err.response?.data?.message || "Gagal menghapus penulis.";
-         setError(msg);
-         window.scrollTo({ top: 0, behavior: "smooth" });
+         setError(err.response?.data?.message || "Gagal menghapus kategori.");
       }
    };
 
-   // Filter Data (Client Side)
-   const filteredAuthors = useMemo(() => {
-      return authors.filter((author) =>
-         author.nama.toLowerCase().includes(searchTerm.toLowerCase())
+   // --- LOGIC FILTER ---
+   const filteredGenres = useMemo(() => {
+      return genres.filter(
+         (g) =>
+            g.kategori.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (g.deskripsi &&
+               g.deskripsi.toLowerCase().includes(searchTerm.toLowerCase()))
       );
-   }, [authors, searchTerm]);
+   }, [genres, searchTerm]);
 
-   // Hitung Index
+   // Hitung Data untuk Halaman Ini
    const indexOfLastItem = currentPage * itemsPerPage;
    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-   const currentItems = filteredAuthors.slice(
-      indexOfFirstItem,
-      indexOfLastItem
-   );
+   const currentItems = filteredGenres.slice(indexOfFirstItem, indexOfLastItem);
 
    return (
       <div className="container-fluid px-4 py-4 bg-light min-vh-100 font-sans">
-         {/* HEADER PAGE */}
          <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
             <div>
                <h2 className="h4 fw-bold text-dark m-0 d-flex align-items-center">
-                  <Users className="me-2 text-primary" size={24} /> Data Penulis
+                  <Tags className="me-2 text-primary" size={24} /> Data Kategori
                </h2>
                <p className="text-muted small m-0">
-                  Kelola daftar penulis buku
+                  Kelola kategori / genre buku
                </p>
             </div>
             <Link
-               to="/admin/authors/create"
+               to="/admin/genres/create"
                className="btn btn-primary fw-bold shadow-sm d-flex align-items-center px-4"
             >
-               <Plus size={18} className="me-2" /> Tambah Penulis
+               <Plus size={18} className="me-2" /> Tambah Kategori
             </Link>
          </div>
 
-         {/* NOTIFIKASI */}
+         {/* Alerts */}
          {(success || error) && (
             <div
                className={`alert ${
@@ -146,17 +129,15 @@ const AuthorList = () => {
             </div>
          )}
 
-         {/* CARD UTAMA */}
          <div className="card shadow-sm border-0 rounded-4 overflow-hidden">
             <TableHeader
                itemsPerPage={itemsPerPage}
                onItemsPerPageChange={setItemsPerPage}
                searchTerm={searchTerm}
                onSearchChange={setSearchTerm}
-               placeholder="Cari penulis..."
+               placeholder="Cari kategori..."
             />
 
-            {/* TABLE */}
             <div className="card-body p-0">
                <div className="table-responsive">
                   <table className="table table-hover align-middle mb-0">
@@ -169,7 +150,10 @@ const AuthorList = () => {
                               No
                            </th>
                            <th className="px-4 py-3 text-secondary small fw-bold text-uppercase">
-                              Nama Penulis
+                              Nama Kategori
+                           </th>
+                           <th className="px-4 py-3 text-secondary small fw-bold text-uppercase">
+                              Deskripsi
                            </th>
                            <th className="px-4 py-3 text-secondary small fw-bold text-uppercase">
                               Jumlah Buku
@@ -182,14 +166,9 @@ const AuthorList = () => {
                      <tbody>
                         {loading ? (
                            <tr>
-                              <td colSpan="4" className="text-center py-5">
-                                 <div
-                                    className="spinner-border text-primary spinner-border-sm me-2"
-                                    role="status"
-                                 ></div>
-                                 <span className="text-muted small">
-                                    Memuat data...
-                                 </span>
+                              <td colSpan="5" className="text-center py-5">
+                                 <div className="spinner-border text-primary spinner-border-sm me-2"></div>{" "}
+                                 Memuat...
                               </td>
                            </tr>
                         ) : currentItems.length === 0 ? (
@@ -208,41 +187,40 @@ const AuthorList = () => {
                               </td>
                            </tr>
                         ) : (
-                           currentItems.map((author, index) => (
-                              <tr key={author.id} className="border-bottom">
+                           currentItems.map((genre, index) => (
+                              <tr key={genre.id} className="border-bottom">
                                  <td className="px-4 py-3 text-muted">
                                     {indexOfFirstItem + index + 1}
                                  </td>
                                  <td className="px-4 py-3 fw-bold text-dark">
-                                    {author.nama}
+                                    {genre.kategori}
+                                 </td>
+                                 <td className="px-4 py-3 text-muted small">
+                                    {genre.deskripsi || "-"}
                                  </td>
                                  <td className="px-4 py-3">
                                     <span
                                        className={`badge rounded-pill px-3 py-2 ${
-                                          author.books_count > 0
+                                          genre.books_count > 0
                                              ? "bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10"
                                              : "bg-secondary bg-opacity-10 text-secondary"
                                        }`}
                                     >
-                                       <Book size={14} className="me-1" />
-                                       {author.books_count || 0} Buku
+                                       <Book size={14} className="me-1" />{" "}
+                                       {genre.books_count || 0}
                                     </span>
                                  </td>
                                  <td className="px-4 py-3 text-end">
                                     <div className="d-flex justify-content-end gap-2">
                                        <Link
-                                          to={`/admin/authors/edit/${author.id}`}
+                                          to={`/admin/genres/edit/${genre.id}`}
                                           className="btn btn-outline-warning btn-sm shadow-sm p-2 rounded"
-                                          title="Edit"
                                        >
                                           <Edit size={16} />
                                        </Link>
                                        <button
-                                          onClick={() =>
-                                             handleDelete(author.id)
-                                          }
+                                          onClick={() => handleDelete(genre.id)}
                                           className="btn btn-outline-danger btn-sm shadow-sm p-2 rounded"
-                                          title="Hapus"
                                        >
                                           <Trash2 size={16} />
                                        </button>
@@ -256,10 +234,9 @@ const AuthorList = () => {
                </div>
             </div>
 
-            {/* FOOTER PAGINATION */}
             <Pagination
                currentPage={currentPage}
-               totalItems={filteredAuthors.length}
+               totalItems={filteredGenres.length}
                itemsPerPage={itemsPerPage}
                onPageChange={setCurrentPage}
             />
@@ -268,4 +245,4 @@ const AuthorList = () => {
    );
 };
 
-export default AuthorList;
+export default GenreList;

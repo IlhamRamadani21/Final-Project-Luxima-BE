@@ -15,6 +15,10 @@ import BookList from "./pages/admin/BookList";
 import BookForm from "./pages/admin/BookForm";
 import AuthorList from "./pages/admin/AuthorList";
 import AuthorForm from "./pages/admin/AuthorForm";
+import GenreList from "./pages/admin/GenreList";
+import GenreForm from "./pages/admin/GenreForm";
+import SegmentationList from "./pages/admin/SegmentationList";
+import SegmentationForm from "./pages/admin/SegmentationForm";
 
 function App() {
    return (
@@ -40,6 +44,16 @@ function App() {
                   <Route path="authors" element={<AuthorList />} />
                   <Route path="authors/create" element={<AuthorForm />} />
                   <Route path="authors/edit/:id" element={<AuthorForm />} />
+
+                  {/* Manage Kategori */}
+                  <Route path="genres" element={<GenreList />} />
+                  <Route path="genres/create" element={<GenreForm />} />
+                  <Route path="genres/edit/:id" element={<GenreForm />} />
+
+                  {/* Manage Segmentation */}
+                  <Route path="segmentations" element={<SegmentationList />} />
+                  <Route path="segmentations/create" element={<SegmentationForm />} />
+                  <Route path="segmentations/edit/:id" element={<SegmentationForm />} />
                </Route>
             </Route>
 

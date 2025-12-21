@@ -8,13 +8,15 @@ use Illuminate\Validation\ValidationException;
 
 class GenreController extends Controller
 {
-
-    // Menampilkan daftar semua genre/kategori.
-
     public function index()
     {
+<<<<<<< HEAD
         // Mengambil semua data genre dari database
         $genres = Genre::with('books')->get();
+=======
+        // Ambil data + hitung jumlah buku
+        $genres = Genre::withCount('books')->latest()->get();
+>>>>>>> a0e323f511504532c3521b8124a51dcd7842bb06
 
         return response()->json([
             'jumlahData' => $genres->count(),
@@ -23,17 +25,21 @@ class GenreController extends Controller
         ], 200);
     }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> a0e323f511504532c3521b8124a51dcd7842bb06
     public function store(Request $request)
     {
         try {
-            // Validasi input: 'kategori' dan 'deskripsi' wajib diisi
             $validatedData = $request->validate([
                 'kategori' => 'required|string|max:100|unique:genres,kategori',
                 'deskripsi' => 'nullable|string|max:255',
+            ], [
+                'kategori.required' => 'Nama kategori wajib diisi.',
+                'kategori.unique' => 'Kategori ini sudah ada.',
             ]);
 
-            // Membuat instance genre baru dan menyimpannya
             $genre = Genre::create($validatedData);
 
             return response()->json([
@@ -49,16 +55,13 @@ class GenreController extends Controller
         }
     }
 
-
     public function show($id)
     {
-        // Mencari genre berdasarkan ID, Kalo enggak ditemukan mengembalikan 404
-        $genre = Genre::find($id);
+        // Load relasi books agar bisa tampil di halaman edit
+        $genre = Genre::with('books')->find($id);
 
         if (!$genre) {
-            return response()->json([
-                'message' => 'Kategori tidak ditemukan',
-            ], 404);
+            return response()->json(['message' => 'Kategori tidak ditemukan'], 404);
         }
 
         return response()->json([
@@ -67,26 +70,24 @@ class GenreController extends Controller
         ], 200);
     }
 
-    // Memperbarui data genre/kategori.
-
     public function update(Request $request, $id)
     {
         $genre = Genre::find($id);
 
         if (!$genre) {
-            return response()->json([
-                'message' => 'Kategori tidak ditemukan',
-            ], 404);
+            return response()->json(['message' => 'Kategori tidak ditemukan'], 404);
         }
 
         try {
-            // Validasi input untuk update
             $validatedData = $request->validate([
+                // Unique ignore ID saat ini
                 'kategori' => 'required|string|max:100|unique:genres,kategori,'.$genre->id,
                 'deskripsi' => 'nullable|string|max:255',
+            ], [
+                'kategori.required' => 'Nama kategori wajib diisi.',
+                'kategori.unique' => 'Nama kategori sudah digunakan.',
             ]);
 
-            // Memperbarui data yang sudah divalidasi
             $genre->update($validatedData);
 
             return response()->json([
@@ -102,22 +103,25 @@ class GenreController extends Controller
         }
     }
 
-    // Menghapus genre dari database.
-
     public function destroy($id)
     {
         $genre = Genre::find($id);
 
         if (!$genre) {
+            return response()->json(['message' => 'Kategori tidak ditemukan'], 404);
+        }
+
+        // --- CEK CONSTRAINT ---
+        if ($genre->books()->count() > 0) {
             return response()->json([
-                'message' => 'Kategori tidak ditemukan',
-            ], 404);
+                'message' => 'Gagal menghapus: Kategori ini masih digunakan oleh buku yang terdaftar.'
+            ], 409); // 409 Conflict
         }
 
         $genre->delete();
 
         return response()->json([
-            'message' => 'Kategori berhasil dihapus',
+            'message' => 'Kategori berhasil dihapus'
         ], 200);
     }
 }
