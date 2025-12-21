@@ -17,6 +17,9 @@ import {
 } from "lucide-react";
 import api from "../../api";
 
+import TableHeader from "../../components/common/TableHeader";
+import Pagination from "../../components/common/Pagination";
+
 const AuthorList = () => {
    // --- STATE UTAMA ---
    const [authors, setAuthors] = useState([]);
@@ -89,21 +92,12 @@ const AuthorList = () => {
    }, [authors, searchTerm]);
 
    // Hitung Index
-   const totalPages = Math.ceil(filteredAuthors.length / itemsPerPage);
    const indexOfLastItem = currentPage * itemsPerPage;
    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
    const currentItems = filteredAuthors.slice(
       indexOfFirstItem,
       indexOfLastItem
    );
-
-   // Fungsi Navigasi
-   const goToFirstPage = () => setCurrentPage(1);
-   const goToLastPage = () => setCurrentPage(totalPages);
-   const goToPrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
-   const goToNextPage = () =>
-      setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-   const goToPage = (page) => setCurrentPage(page);
 
    return (
       <div className="container-fluid px-4 py-4 bg-light min-vh-100 font-sans">
@@ -154,49 +148,13 @@ const AuthorList = () => {
 
          {/* CARD UTAMA */}
          <div className="card shadow-sm border-0 rounded-4 overflow-hidden">
-            {/* TOOLBAR (Search & Rows Per Page) */}
-            <div className="card-header bg-white py-3 px-4 border-bottom">
-               <div className="row g-3 align-items-center justify-content-between">
-                  {/* KIRI: Rows Per Page Selector */}
-                  <div className="col-auto d-flex align-items-center">
-                     <span className="text-muted small me-2 fw-semibold">
-                        Tampilkan
-                     </span>
-                     <select
-                        className="form-select form-select-sm border-secondary border-opacity-25"
-                        style={{ width: "70px", cursor: "pointer" }}
-                        value={itemsPerPage}
-                        onChange={(e) =>
-                           setItemsPerPage(Number(e.target.value))
-                        }
-                     >
-                        <option value={5}>5</option>
-                        <option value={10}>10</option>
-                        <option value={20}>20</option>
-                        <option value={50}>50</option>
-                     </select>
-                     <span className="text-muted small ms-2 fw-semibold">
-                        baris
-                     </span>
-                  </div>
-
-                  {/* KANAN: Search Bar */}
-                  <div className="col-12 col-md-4">
-                     <div className="input-group input-group-sm shadow-sm">
-                        <span className="input-group-text bg-white border-end-0">
-                           <Search size={16} className="text-muted" />
-                        </span>
-                        <input
-                           type="text"
-                           className="form-control border-start-0 bg-white"
-                           placeholder="Cari nama penulis..."
-                           value={searchTerm}
-                           onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                     </div>
-                  </div>
-               </div>
-            </div>
+            <TableHeader
+               itemsPerPage={itemsPerPage}
+               onItemsPerPageChange={setItemsPerPage}
+               searchTerm={searchTerm}
+               onSearchChange={setSearchTerm}
+               placeholder="Cari penulis..."
+            />
 
             {/* TABLE */}
             <div className="card-body p-0">
@@ -299,133 +257,12 @@ const AuthorList = () => {
             </div>
 
             {/* FOOTER PAGINATION */}
-            {filteredAuthors.length > 0 && (
-               <div className="card-footer bg-white py-3 px-4 border-top">
-                  <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-                     {/* Info Data */}
-                     <span className="text-muted small">
-                        Menampilkan{" "}
-                        <span className="fw-bold text-dark">
-                           {indexOfFirstItem + 1}
-                        </span>{" "}
-                        -{" "}
-                        <span className="fw-bold text-dark">
-                           {Math.min(indexOfLastItem, filteredAuthors.length)}
-                        </span>{" "}
-                        dari{" "}
-                        <span className="fw-bold text-dark">
-                           {filteredAuthors.length}
-                        </span>{" "}
-                        data
-                     </span>
-
-                     {/* Pagination Controls */}
-                     <nav aria-label="Page navigation">
-                        <ul className="pagination pagination-sm m-0 shadow-sm">
-                           {/* First Page */}
-                           <li
-                              className={`page-item ${
-                                 currentPage === 1 ? "disabled" : ""
-                              }`}
-                           >
-                              <button
-                                 className="page-link border-0 rounded-start px-2 py-2"
-                                 onClick={goToFirstPage}
-                                 title="Halaman Pertama"
-                              >
-                                 <ChevronsLeft size={14} />
-                              </button>
-                           </li>
-
-                           {/* Prev Page */}
-                           <li
-                              className={`page-item ${
-                                 currentPage === 1 ? "disabled" : ""
-                              }`}
-                           >
-                              <button
-                                 className="page-link border-0 px-2 py-2"
-                                 onClick={goToPrevPage}
-                                 title="Sebelumnya"
-                              >
-                                 <ChevronLeft size={14} />
-                              </button>
-                           </li>
-
-                           {/* Page Numbers */}
-                           {[...Array(totalPages)].map((_, i) => {
-                              const page = i + 1;
-                              // Tampilkan halaman Pertama, Terakhir, dan tetangga Current Page
-                              if (
-                                 page === 1 ||
-                                 page === totalPages ||
-                                 (page >= currentPage - 1 &&
-                                    page <= currentPage + 1)
-                              ) {
-                                 return (
-                                    <li
-                                       key={i}
-                                       className={`page-item ${
-                                          currentPage === page ? "active" : ""
-                                       }`}
-                                    >
-                                       <button
-                                          className="page-link border-0 px-3 py-2 mx-1 rounded"
-                                          onClick={() => goToPage(page)}
-                                       >
-                                          {page}
-                                       </button>
-                                    </li>
-                                 );
-                              } else if (
-                                 page === currentPage - 2 ||
-                                 page === currentPage + 2
-                              ) {
-                                 return (
-                                    <li key={i} className="page-item disabled">
-                                       <span className="page-link border-0 px-2">
-                                          ...
-                                       </span>
-                                    </li>
-                                 );
-                              }
-                              return null;
-                           })}
-
-                           {/* Next Page */}
-                           <li
-                              className={`page-item ${
-                                 currentPage === totalPages ? "disabled" : ""
-                              }`}
-                           >
-                              <button
-                                 className="page-link border-0 px-2 py-2"
-                                 onClick={goToNextPage}
-                                 title="Selanjutnya"
-                              >
-                                 <ChevronRight size={14} />
-                              </button>
-                           </li>
-
-                           {/* Last Page */}
-                           <li
-                              className={`page-item ${
-                                 currentPage === totalPages ? "disabled" : ""
-                              }`}
-                           >
-                              <button
-                                 className="page-link border-0 rounded-end px-2 py-2"
-                                 onClick={goToLastPage}
-                                 title="Halaman Terakhir"
-                              >
-                                 <ChevronsRight size={14} />
-                              </button>
-                           </li>
-                        </ul>
-                     </nav>
-                  </div>
-               </div>
-            )}
+            <Pagination
+               currentPage={currentPage}
+               totalItems={filteredAuthors.length}
+               itemsPerPage={itemsPerPage}
+               onPageChange={setCurrentPage}
+            />
          </div>
       </div>
    );
