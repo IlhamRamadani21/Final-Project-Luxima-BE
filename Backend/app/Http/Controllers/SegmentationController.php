@@ -8,13 +8,10 @@ use Illuminate\Validation\ValidationException;
 
 class SegmentationController extends Controller
 {
-    /**
-     * Tampilkan semua segmen yang ada.
-     */
     public function index()
     {
-        // Ambil semua data segmen
-        $segmentations = Segmentation::all();
+        // Ambil data + hitung jumlah buku
+        $segmentations = Segmentation::withCount('books')->latest()->get();
 
         return response()->json([
             'message' => 'Daftar segmentasi berhasil diambil',
@@ -22,14 +19,14 @@ class SegmentationController extends Controller
         ], 200);
     }
 
-    /**
-     * Menyimpan (CREATE) segmen baru ke database.
-     */
     public function store(Request $request)
     {
         try {
             $validatedData = $request->validate([
                 'segmentasi' => 'required|string|max:100|unique:segmentations,segmentasi',
+            ], [
+                'segmentasi.required' => 'Nama segmentasi wajib diisi.',
+                'segmentasi.unique' => 'Segmentasi ini sudah ada.',
             ]);
 
             $segmentation = Segmentation::create($validatedData);
@@ -37,26 +34,23 @@ class SegmentationController extends Controller
             return response()->json([
                 'message' => 'Segmentasi berhasil ditambahkan',
                 'data' => $segmentation
-            ], 201); // Kode status 201 Created
+            ], 201);
 
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validasi gagal',
                 'errors' => $e->errors()
-            ], 422); // Kode status 422 Unprocessable Entity
+            ], 422);
         }
     }
 
-
-    // Mencari data
     public function show($id)
     {
-        $segmentation = Segmentation::find($id);
+        // Load relasi books untuk ditampilkan saat edit
+        $segmentation = Segmentation::with('books')->find($id);
 
         if (!$segmentation) {
-            return response()->json([
-                'message' => 'Segmentasi tidak ditemukan'
-            ], 404);
+            return response()->json(['message' => 'Segmentasi tidak ditemukan'], 404);
         }
 
         return response()->json([
@@ -65,23 +59,21 @@ class SegmentationController extends Controller
         ], 200);
     }
 
-
-    // Memperbaruidata segmen.
-
     public function update(Request $request, $id)
     {
         $segmentation = Segmentation::find($id);
 
         if (!$segmentation) {
-            return response()->json([
-                'message' => 'Segmentasi tidak ditemukan'
-            ], 404);
+            return response()->json(['message' => 'Segmentasi tidak ditemukan'], 404);
         }
 
         try {
-
             $validatedData = $request->validate([
+                // Unique ignore ID saat ini
                 'segmentasi' => 'required|string|max:100|unique:segmentations,segmentasi,'.$segmentation->id,
+            ], [
+                'segmentasi.required' => 'Nama segmentasi wajib diisi.',
+                'segmentasi.unique' => 'Nama segmentasi sudah digunakan.',
             ]);
 
             $segmentation->update($validatedData);
@@ -99,17 +91,19 @@ class SegmentationController extends Controller
         }
     }
 
-    /**
-     * Menghapus Masa Lalu.
-     */
     public function destroy($id)
     {
         $segmentation = Segmentation::find($id);
 
         if (!$segmentation) {
+            return response()->json(['message' => 'Segmentasi tidak ditemukan'], 404);
+        }
+
+        // --- CEK CONSTRAINT ---
+        if ($segmentation->books()->count() > 0) {
             return response()->json([
-                'message' => 'Segmentasi tidak ditemukan'
-            ], 404);
+                'message' => 'Gagal menghapus: Segmentasi ini masih digunakan oleh buku yang terdaftar.'
+            ], 409); // 409 Conflict
         }
 
         $segmentation->delete();
