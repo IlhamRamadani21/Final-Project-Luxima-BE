@@ -7,4 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Segmentation extends Model
 {
     protected $fillable = ['segmentasi'];
+
+    public function books()
+    {
+        return $this->hasMany(Book::class, 'segmentasi_id');
+    }
 }
