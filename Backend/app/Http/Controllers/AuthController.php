@@ -30,12 +30,12 @@ class AuthController extends Controller
                 'email' => ['Kredensial yang Anda masukkan salah.'],
             ]);
         }
-        
+
         // Opsional: Cek role jika hanya admin yang boleh login di endpoint ini
         // if (!$user->isAdmin()) {
         //     return response()->json([
         //         'message' => 'Akses ditolak. Hanya Admin yang diizinkan.'
-        //     ], 403); 
+        //     ], 403);
         // }
 
         // 4. Hapus token lama dan buat token baru
