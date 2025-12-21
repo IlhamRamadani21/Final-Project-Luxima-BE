@@ -7,4 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Genre extends Model
 {
     protected $fillable = ['kategori', 'deskripsi'];
+
+    public function books()
+    {
+        return $this->hasMany(Book::class, 'kategori_id');
+    }
 }
