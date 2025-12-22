@@ -43,6 +43,7 @@ class BookController extends Controller
         $books = $query->get();
 
         return response()->json([
+            'jumlahData' => $books->count(),
             'message' => 'Daftar buku berhasil diambil',
             'data' => $books
         ], 200);
