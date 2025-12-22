@@ -8,16 +8,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Genre extends Model
 {
-<<<<<<< HEAD
     protected $fillable = ['kategori', 'segmentasi_id', 'deskripsi'];
 
     public function segmentation()
     {
         return $this->belongsTo(Segmentation::class, 'segmentasi_id');
     }
-=======
-    protected $fillable = ['kategori', 'deskripsi'];
->>>>>>> a0e323f511504532c3521b8124a51dcd7842bb06
 
     public function books()
     {
