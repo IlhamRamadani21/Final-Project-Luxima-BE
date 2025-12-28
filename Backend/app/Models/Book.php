@@ -23,6 +23,7 @@ class Book extends Model
         'kertas_isi',
         'warna_cover',
         'warna_isi',
+        'description',
         'harga',
         'stok',
         'tgl_surat_keputusan',
