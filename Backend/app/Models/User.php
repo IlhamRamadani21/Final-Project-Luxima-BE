@@ -22,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role', 
     ];
 
     /**
@@ -52,7 +53,7 @@ class User extends Authenticatable
     {
         return $query->where('role', 'admin');
     }
-    
+
     public function isAdmin()
     {
         return $this->role === 'admin';

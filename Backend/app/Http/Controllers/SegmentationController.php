@@ -10,10 +10,10 @@ use Illuminate\Validation\ValidationException;
 
 class SegmentationController extends Controller
 {
-    public function index()
+     public function index()
     {
-        // Ambil data + hitung jumlah buku
-        $segmentations = Segmentation::withCount('books')->latest()->get();
+        // Meng GET semua data segmentasi dari database
+        $segmentations = Segmentation::with('genres')->get();
 
         return response()->json([
             'jumlahData' => $segmentations->count(),
@@ -28,19 +28,16 @@ class SegmentationController extends Controller
         try {
             // Validasi 'nama' wajib diisi
             $validatedData = $request->validate([
-                'segmentasi' => 'required|string|max:100|unique:segmentations,segmentasi',
-            ], [
-                'segmentasi.required' => 'Nama segmentasi wajib diisi.',
-                'segmentasi.unique' => 'Segmentasi ini sudah ada.',
+                'nama' => 'required|string|max:255',
             ]);
 
             // Membuat instance segmentasi baru dan menyimpannya
-            $segmentation = Segmentation::create($validatedData);
+            $segmentations = Segmentation::create($validatedData);
 
             return response()->json([
                 'message' => 'Segmentasi berhasil ditambahkan',
-                'data' => $segmentation
-            ], 201);
+                'data' => $segmentations
+            ], 201); // Kode status 201 ditambahlkan
 
         } catch (ValidationException $e) {
             return response()->json([
@@ -50,45 +47,48 @@ class SegmentationController extends Controller
         }
     }
 
+    // Menampilkan detail satu segmentasi spesifik.
+
     public function show($id)
     {
-        // Load relasi books untuk ditampilkan saat edit
-        $segmentation = Segmentation::with('books')->find($id);
+        // Mencari segmentasi berdasarkan ID, kalo enggak ditemukan mengembalikan 404
+        $segmentations = Segmentation::find($id);
 
-        if (!$segmentation) {
-            return response()->json(['message' => 'Segmentasi tidak ditemukan'], 404);
+        if (!$segmentations) {
+            return response()->json([
+                'message' => 'Segmentasi tidak ditemukan'
+            ], 404);
         }
 
         return response()->json([
             'message' => 'Detail segmentasi berhasil diambil',
-            'data' => $segmentation
+            'data' => $segmentations
         ], 200);
     }
 
     // Memperbarui data segmentasi.
     public function update(Request $request, $id)
     {
-        $segmentation = Segmentation::find($id);
+        $segmentations = Segmentation::find($id);
 
-        if (!$segmentation) {
-            return response()->json(['message' => 'Segmentasi tidak ditemukan'], 404);
+        if (!$segmentations) {
+            return response()->json([
+                'message' => 'Segmentasi tidak ditemukan'
+            ], 404);
         }
 
         try {
+            // Validasi input untuk update
             $validatedData = $request->validate([
-                // Unique ignore ID saat ini
-                'segmentasi' => 'required|string|max:100|unique:segmentations,segmentasi,'.$segmentation->id,
-            ], [
-                'segmentasi.required' => 'Nama segmentasi wajib diisi.',
-                'segmentasi.unique' => 'Nama segmentasi sudah digunakan.',
+                'nama' => 'required|string|max:255',
             ]);
 
             // Memperbarui data yang udah di cek
-            $segmentation->update($validatedData);
+            $segmentations->update($validatedData);
 
             return response()->json([
                 'message' => 'Data segmentasi berhasil diperbarui',
-                'data' => $segmentation
+                'data' => $segmentations
             ], 200);
 
         } catch (ValidationException $e) {
@@ -102,20 +102,15 @@ class SegmentationController extends Controller
     // Menghapus data segmentasi.
     public function destroy($id)
     {
-        $segmentation = Segmentation::find($id);
+        $segmentations = Segmentation::find($id);
 
-        if (!$segmentation) {
-            return response()->json(['message' => 'Segmentasi tidak ditemukan'], 404);
-        }
-
-        // --- CEK CONSTRAINT ---
-        if ($segmentation->books()->count() > 0) {
+        if (!$segmentations) {
             return response()->json([
                 'message' => 'Gagal menghapus: Segmentasi ini masih digunakan oleh buku yang terdaftar.'
             ], 409); // 409 Conflict
         }
 
-        $segmentation->delete();
+        $segmentations->delete();
 
         return response()->json([
             'message' => 'Segmentasi berhasil dihapus'

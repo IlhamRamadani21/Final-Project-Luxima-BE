@@ -10,13 +10,8 @@ class GenreController extends Controller
 {
     public function index()
     {
-<<<<<<< HEAD
         // Mengambil semua data genre dari database
         $genres = Genre::with('books')->get();
-=======
-        // Ambil data + hitung jumlah buku
-        $genres = Genre::withCount('books')->latest()->get();
->>>>>>> a0e323f511504532c3521b8124a51dcd7842bb06
 
         return response()->json([
             'jumlahData' => $genres->count(),
@@ -25,10 +20,6 @@ class GenreController extends Controller
         ], 200);
     }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> a0e323f511504532c3521b8124a51dcd7842bb06
     public function store(Request $request)
     {
         try {
