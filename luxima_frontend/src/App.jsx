@@ -19,6 +19,7 @@ import GenreList from "./pages/admin/GenreList";
 import GenreForm from "./pages/admin/GenreForm";
 import SegmentationList from "./pages/admin/SegmentationList";
 import SegmentationForm from "./pages/admin/SegmentationForm";
+import DetailBook from "./pages/DetailBook";
 
 function App() {
    return (
@@ -27,6 +28,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/kategori" element={<Category />} />
+            <Route path="/kategori/detail/:id" element={<DetailBook />} />
             <Route path="/keranjang" element={<Cart />} />
 
             <Route element={<AdminRoute />}>
