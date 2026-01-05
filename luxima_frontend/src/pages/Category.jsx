@@ -65,15 +65,15 @@ const Category = () => {
    };
 
    return (
-      <div className="container py-5">
+       <main className="d-flex flex-column min-vh-100 w-100" style={{backgroundColor: '#f9f9f9', fontFamily: 'Segoe UI, sans-serif', overflowX: 'hidden'}}>
          <Navbar />
-         <h2 className="text-center mb-4 fw-bold">Katalog Berdasarkan Segmen</h2>
+         <h2 className="text-center my-4 fw-bold fs-2">Katalog Kategori</h2>
 
          {/* Navigasi Segmentasi */}
-         <div className="card shadow-sm mb-4">
-            <div className="card-body">
+         <session className="container-fluid px-4 my-5 w-100" style={{maxWidth: '100%'}}>
+            <div className="card-body mx-auto">
                <h6 className="text-muted mb-3">Pilih Segmentasi:</h6>
-               <div className="d-flex flex-wrap gap-2">
+               <div className="d-flex flex-wrap gap-2 mx-auto">
                   <button onClick={() => handleSegmentationClick("all")} className={`btn ${selectedSegId === "all" ? "btn-dark" : "btn-outline-dark"}`}>
                      Semua
                   </button>
@@ -83,12 +83,9 @@ const Category = () => {
                      </button>
                   ))}
                </div>
-            </div>
-         </div>
-
-         {/* Navigasi Kategori */}
+               {/* Navigasi Kategori */}
          {selectedSegId && selectedSegId !== "all" && (
-            <div className="card shadow-sm mb-4 border-0 bg-light animate__animated animate__fadeIn">
+            <div className="card shadow-sm mb-4 mx-auto border-0 bg-light animate__animated animate__fadeIn">
                <div className="card-body">
                   <h6 className="text-muted mb-3">Kategori Tersedia:</h6>
                   <div className="d-flex flex-wrap gap-2">
@@ -105,9 +102,10 @@ const Category = () => {
                </div>
             </div>
          )}
-
+            </div>
+         </session>
          {/* Daftar Buku */}
-         <div className="row g-4">
+         <div className="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
             <div className="col-12">
                <h5 className="fw-bold mb-3">
                   {selectedSegId === "all" ? "Menampilkan Semua Buku" : "Hasil Pencarian"}
@@ -118,23 +116,24 @@ const Category = () => {
             {books.length > 0
                ? books.map((buku) => (
                     <div key={buku.id} className="col-sm-6 col-md-4 col-lg-3">
-                       <div className="card h-100 shadow-sm border-0">
+                       <div className="card"style={{width: "18rem"}}>
+                        <img src={"#"} className="card-img-top" alt={buku.judul}/>
+
                           <div className="card-body">
-                             <div className="badge bg-info mb-2 text-dark" style={{ fontSize: "10px" }}>
-                                BUKU
-                             </div>
                              <h6 className="card-title fw-bold text-dark">{buku.judul}</h6>
+                             <p className="card-text">{buku.description}</p>
                              <h5 className="text-success mt-3">Rp. {buku.harga}</h5>
                           </div>
                           <div className="card-footer bg-white border-0 pb-3">
-                             <button className="btn btn-outline-primary btn-sm w-100">Detail Buku</button>
+                             <button className="btn btn-outline-primary btn-sm w-100">Detail</button>
+                             <button className="btn btn-outline-primary btn-sm w-100">Add to Cart</button>
                           </div>
                        </div>
                     </div>
                  ))
                : !loading && <div className="text-center py-5 text-muted col-12">Tidak ada buku ditemukan.</div>}
          </div>
-      </div>
+      </main>
    );
 };
 

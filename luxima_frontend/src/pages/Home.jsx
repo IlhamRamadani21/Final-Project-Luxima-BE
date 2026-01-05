@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar";
 import { useCart } from "../context/CartContext";
 
 function Home() {
-  // --- STATE & LOGIC ---
+  
   const [books, setBooks] = useState([]);
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search");

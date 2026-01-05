@@ -1,233 +1,182 @@
-import React, { useState } from 'react'; 
+import React, { useEffect, useState } from "react";
 // ini package icon fungsinya cuman secara untuk icon doang
-import { ShoppingCart, Trash2, Plus, Minus, X } from 'lucide-react'; 
-import Navbar from '../components/Navbar';
+import { ShoppingCart, Trash2, Plus, Minus, X } from "lucide-react";
+import Navbar from "../components/Navbar";
+import axios from "axios";
 
 // Data keranjang belanja ecek ecek
-const initialCartItems = [
-  { id: 1, judul: 'Adab di Dalam Rumah', harga: 150000, jumlah: 2, stock: 10, imageUrl: "Adab_di_Dalam_Rumah.jpg" },
-  { id: 2, judul: 'Ayo Mengenal Huruf Sambil Mewarnai', harga: 750000, jumlah: 1, stock: 5, imageUrl: "Ayo_Mengenal_Huruf_Sambil_Mewarnai.jpg" },
-  { id: 3, judul: 'Cara mengajar anak dirumah', harga: 85000, jumlah: 3, stock: 25, imageUrl: "Cara mengajar_anak_dirumah.jpg" },
-];
+// const initialCartItems = [
+//   { id: 1, judul: 'Adab di Dalam Rumah', harga: 150000, jumlah: 2, stock: 10, imageUrl: "Adab_di_Dalam_Rumah.jpg" },
+//   { id: 2, judul: 'Ayo Mengenal Huruf Sambil Mewarnai', harga: 750000, jumlah: 1, stock: 5, imageUrl: "Ayo_Mengenal_Huruf_Sambil_Mewarnai.jpg" },
+//   { id: 3, judul: 'Cara mengajar anak dirumah', harga: 85000, jumlah: 3, stock: 25, imageUrl: "Cara mengajar_anak_dirumah.jpg" },
+// ];
 
-// Fungsi untuk memformat angka menjadi Rupiah
-const formatRupiah = (number) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-  }).format(number);
-};
+// // Fungsi untuk memformat angka menjadi Rupiah
+// const formatRupiah = (number) => {
+//   return new Intl.NumberFormat('id-ID', {
+//     style: 'currency',
+//     currency: 'IDR',
+//     minimumFractionDigits: 0,
+//   }).format(number);
+// };
 
 // Komponen Utama Keranjang Belanja
+
 const Cart = () => {
-  const [cartItems, setCartItems] = useState(initialCartItems);
+   const [cartItems, setCartItems] = useState([]);
+   const [loading, setLoading] = useState(true);
+   const token = localStorage.getItem("token");
 
-  // Perhitungan Subtotal dan Total
-  const calculateTotal = () => {
-    return cartItems.reduce((total, item) => total + (item.harga * item.jumlah), 0);
-  };
+   const config = {
+      headers: {
+         Authorization: `Bearer ${token}`,
+         Accept: "application/json",
+      },
+   };
 
-  // Handler untuk menambah kuantitas
-  const handleTambahJumlahPesanan = (id) => {
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id && item.jumlah < item.stock
-          ? { ...item, jumlah: item.jumlah + 1 }
-          : item
-      )
-    );
-  };
+   // 1. Ambil Data - Pindahkan setLoading ke dalam try/catch
+   const fetchCart = async () => {
+      try {
+         const response = await axios.get("http://localhost:8000/api/carts", config);
+         // Pastikan struktur response.data.data sesuai dengan backend Laravel
+         setCartItems(response.data.data || response.data);
+      } catch (error) {
+         console.error("Gagal mengambil data", error);
+      } finally {
+         setLoading(false); // Pastikan loading berhenti apa pun hasilnya
+      }
+   };
 
-  // Handler untuk mengurangi kuantitas
-  const handleKurangiJumlahPesanan = (id) => {
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id && item.jumlah > 1
-          ? { ...item, jumlah: item.jumlah - 1 }
-          : item
-      )
-    );
-  };
+   useEffect(() => {
+      fetchCart();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, []);
 
-  // Handler untuk menghapus item
-  const handleHapusItemPesanan = (id) => {
-    setCartItems(prevItems => prevItems.filter(item => item.id !== id));
-  };
+   // 2. Update Jumlah - Perbaikan: Gunakan 'prev' agar tidak cascading
+   const updateQuantity = async (id, newQty) => {
+      if (newQty < 1) return;
+      try {
+         await axios.patch(`http://localhost:8000/api/carts/${id}`, { quantity: newQty }, config);
 
-  // Status keranjang kosong
-  const isCartEmpty = cartItems.length === 0;
-  const subTotal = calculateTotal();
-  const biayaPengiriman = isCartEmpty ? 0 : 25000;
-  const totalBiaya = subTotal + biayaPengiriman;
+         // PERBAIKAN DI SINI: Menggunakan functional update (prev)
+         setCartItems((prevItems) => prevItems.map((item) => (item.id === id ? { ...item, quantity: newQty } : item)));
+      } catch (error) {
+         alert(error.response?.data?.message || "Gagal update stok");
+      }
+   };
 
+   // 3. Hapus Item - Perbaikan: Gunakan 'prev' agar tidak error unused/stale
+   const deleteItem = async (id) => {
+      if (window.confirm("Hapus buku ini dari keranjang?")) {
+         try {
+            await axios.delete(`http://localhost:8000/api/carts/${id}`, config);
+            setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+         } catch (err) {
+            // Ubah nama jadi err agar jelas
+            console.error(err); // Cetak ke console agar tahu penyebab asli errornya
+            alert("Gagal menghapus item: " + (err.response?.data?.message || "Koneksi bermasalah"));
+         }
+      }
+   };
 
-  // Component untuk menampilkan satu produk item keranjang
-  const CartItem = ({ item }) => (
-    <div className="d-flex align-items-center justify-content-between p-3 border-bottom">
-      {/* Gambar & Detail Produk */}
-      <div className="d-flex align-items-center flex-grow-1">
-        <img
-          src={item.imageUrl}
-          alt={item.judul}
-          style={{ width: '80px', height: '80px' }} // ukurannya secara eksplisit
-          className="rounded me-4 shadow-sm object-fit-cover"
-        />
-        <div className="flex-grow-1">
-          <h3 className="fw-semibold text-dark fs-5">{item.judul}</h3>
-          <p className="small text-muted mb-0">Stok tersisa: {item.stock}</p>
-        </div>
-      </div>
+   // Perbaikan: Tambahkan optional chaining (?.) agar tidak crash jika data belum load
+   const calculateTotal = () => {
+      return cartItems.reduce((total, item) => {
+         const harga = item.book?.harga || 0;
+         return total + harga * item.quantity;
+      }, 0);
+   };
 
-      {/* Kontrol jumlah pemesanan */}
-      <div className="d-flex align-items-center gap-2 mx-3 mx-sm-5">
-        <button
-          onClick={() => handleKurangiJumlahPesanan(item.id)}
-          disabled={item.jumlah <= 1}
-          className="btn btn-outline-secondary btn-sm rounded-circle p-1"
-          aria-label="Kurangi Kuantitas"
-        >
-          <Minus size={16} />
-        </button>
-        <span className="fw-medium text-center" style={{ width: '2rem' }}>{item.jumlah}</span>
-        <button
-          onClick={() => handleTambahJumlahPesanan(item.id)}
-          disabled={item.jumlah >= item.stock}
-          className="btn btn-outline-secondary btn-sm rounded-circle p-1"
-          aria-label="Tambah Kuantitas"
-        >
-          <Plus size={16} />
-        </button>
-      </div>
-
-      {/* Harga & Hapus */}
-      <div className="text-end" style={{ width: '150px' }}>
-        <p className="fw-bold fs-5 text-primary mb-0">{formatRupiah(item.harga * item.jumlah)}</p>
-        <p className="small text-muted mb-0">({formatRupiah(item.harga)}/item)</p>
-      </div>
-
-      <button
-        onClick={() => handleHapusItemPesanan(item.id)}
-        className="ms-3 btn btn-link text-danger p-1"
-        aria-label="Hapus Item"
+   return (
+      <div
+         style={{
+            backgroundColor: "#f9f9f9",
+            minHeight: "100vh",
+            fontFamily: "Segoe UI, sans-serif",
+         }}
       >
-        <Trash2 size={20} />
-      </button>
-    </div>
-  );
-
-  return (
-    <div className="d-flex flex-column min-vh-100 w-100" style={{backgroundColor: '#f9f9f9', fontFamily: 'Segoe UI, sans-serif', overflowX: 'hidden'}}>
-      <Navbar/>
-      <div className="container-fluid px-4 my-5 w-100" style={{maxWidth: '100%'}}>
-        <h1 className="h1 fw-bolder text-dark mb-4 d-flex align-items-center">
-          <ShoppingCart className="me-3 text-primary" size={32} />
-          Keranjang Belanja Anda
-        </h1>
-
-        <div className="row g-4">
-          {/* tampilan daftar item buku*/}
-          <div className="col-lg-8">
-            <div className="bg-white shadow-lg rounded-3 overflow-hidden">
-              <div className="p-4">
-                {isCartEmpty ? (
-                  <div className="text-center py-5 bg-light rounded-3 border border-secondary border-opacity-50">
-                    <X className="w-12 h-12 text-secondary mx-auto mb-4" />
-                    <p className="fs-4 fw-semibold text-muted mb-2">Keranjang Anda Kosong</p>
-                    <p className="text-secondary mt-2">Yuk, segera temukan produk favorit Anda!</p>
-                  </div>
-                ) : (
-                  <div className="list-group list-group-flush">
-                    {cartItems.map(item => (
-                      <CartItem key={item.id} item={item} />
-                    ))}
-                  </div>
-                )}
-              </div>
-              {!isCartEmpty && (
-                <div className="p-4 bg-light border-top d-flex justify-content-between align-items-center">
-                  <button className="d-flex align-items-center small fw-semibold text-primary btn btn-link p-0">
-                    <Plus size={16} className="me-1"/> Lanjutkan Belanja
-                  </button>
-                  <button 
-                    onClick={() => setCartItems([])}
-                    className="d-flex align-items-center small fw-semibold text-danger btn btn-link p-0"
-                  >
-                    <Trash2 size={16} className="me-1"/> Kosongkan Keranjang
-                  </button>
-                </div>
-              )}
+         <Navbar />
+         {loading ? (
+            <div className="text-center py-5">
+               <div className="spinner-border text-primary mb-3"></div>
+               <h5>Memuat Keranjang...</h5>
             </div>
-          </div>
+         ) : (
+            <div className="container mt-5">
+               <h2 className="mb-4 d-flex align-items-center">
+                  <i className="bi bi-cart3 me-2"></i> Keranjang Belanja
+               </h2>
 
-          {/* tampilan biaya pesanan */}
-          <div className="col-lg-4">
-            <div className="position-sticky" style={{ top: '1.5rem' }}>
-              <div className="bg-white shadow-lg rounded-3 p-4 border-top border-primary border-5">
-                <h2 className="h4 fw-bold text-dark mb-4 border-bottom pb-3">Ringkasan Pesanan</h2>
+               {cartItems.length === 0 ? (
+                  <div className="alert alert-info border-0 shadow-sm">Keranjang Anda kosong.</div>
+               ) : (
+                  <div className="row g-4">
+                     {/* Daftar Item */}
+                     <div className="col-lg-8">
+                        {cartItems.map((item) => (
+                           <div className="card mb-3 shadow-sm border-0" key={item.id}>
+                              <div className="card-body">
+                                 <div className="row align-items-center g-3">
+                                    {/* Gambar: Responsive Size */}
+                                    <div className="col-4 col-md-2">
+                                       <img src={`http://localhost:8000/storage/${item.book.cover}`} className="img-fluid rounded shadow-sm" alt="cover" />
+                                    </div>
 
-                <div className="d-grid gap-3">
-                  <div className="d-flex justify-content-between text-muted">
-                    <span>Subtotal ({cartItems.length} item)</span>
-                    <span>{formatRupiah(subTotal)}</span>
+                                    {/* Judul & Harga: Auto space */}
+                                    <div className="col-8 col-md-4">
+                                       <h6 className="mb-1 text-truncate">{item.book.judul}</h6>
+                                       <p className="text-primary fw-bold mb-0">Rp {item.book.harga.toLocaleString()}</p>
+                                    </div>
+
+                                    {/* Kontrol Jumlah */}
+                                    <div className="col-6 col-md-3 d-flex align-items-center justify-content-md-center">
+                                       <div className="input-group input-group-sm" style={{ width: "100px" }}>
+                                          <button className="btn btn-outline-secondary" onClick={() => updateQuantity(item.id, item.quantity - 1)}>
+                                             -
+                                          </button>
+                                          <span className="input-group-text bg-white fw-bold">{item.quantity}</span>
+                                          <button className="btn btn-outline-secondary" onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+                                             +
+                                          </button>
+                                       </div>
+                                    </div>
+
+                                    {/* Subtotal & Hapus */}
+                                    <div className="col-6 col-md-3 text-end">
+                                       <div className="fw-bold text-dark d-md-block mb-1">Rp {(item.book.harga * item.quantity).toLocaleString()}</div>
+                                       <button className="btn btn-link text-danger p-0 text-decoration-none" onClick={() => deleteItem(item.id)}>
+                                          <i className="bi bi-trash me-1"></i> Hapus
+                                       </button>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        ))}
+                     </div>
+
+                     {/* Ringkasan Belanja: Sticky on Scroll */}
+                     <div className="col-lg-4">
+                        <div className="card shadow-sm border-0 sticky-top" style={{ top: "20px" }}>
+                           <div className="card-body">
+                              <h5 className="card-title mb-4">Ringkasan Belanja</h5>
+                              <div className="d-flex justify-content-between mb-2">
+                                 <span className="text-muted">Total Barang</span>
+                                 <span>{cartItems.length} items</span>
+                              </div>
+                              <div className="d-flex justify-content-between mb-4">
+                                 <span className="h6">Total Harga</span>
+                                 <span className="h5 fw-bold text-primary">Rp {calculateTotal().toLocaleString()}</span>
+                              </div>
+                              <button className="btn btn-primary w-100 py-2 fw-bold shadow-sm">Lanjut Pembayaran</button>
+                           </div>
+                        </div>
+                     </div>
                   </div>
-
-                  <div className="d-flex justify-content-between text-muted border-bottom pb-3">
-                    <span>Biaya Pengiriman</span>
-                    <span>{formatRupiah(biayaPengiriman)}</span>
-                  </div>
-
-                  <div className="d-flex justify-content-between fw-bolder fs-4 text-dark pt-2">
-                    <span>Total Keseluruhan</span>
-                    <span className="text-primary">{formatRupiah(totalBiaya)}</span>
-                  </div>
-                </div>
-
-                <button
-                  disabled={isCartEmpty}
-                  className="w-100 mt-4 py-3 btn btn-primary fw-semibold rounded-3 shadow-sm"
-                >
-                  Lanjutkan ke Pembayaran
-                </button>
-                
-                <p className="small text-muted mt-3 text-center mb-0">
-                  Belum termasuk PPN & diskon tambahan.
-                </p>
-              </div>
+               )}
             </div>
-          </div>
-        </div>
-
+         )}
       </div>
-        {/* 5. FOOTER (FULL WIDTH) */}
-            <footer className="text-white pt-5 pb-4 mt-10 w-100" style={{ backgroundColor: '#1a252f'}}>
-                <div className="container-fluid px-4 w-100">
-                    <div className="row g-4">
-                        <div className="col-md-4">
-                            <h5 className="fw-bold mb-3">Luxima</h5>
-                            <p className="small text-secondary lh-lg">
-                                Toko buku online terlengkap dengan pengalaman belanja yang nyaman dan menyenangkan.
-                            </p>
-                        </div>
-                        <div className="col-md-4">
-                            <h5 className="fw-bold mb-3">Info Perusahaan</h5>
-                            <ul className="list-unstyled small text-secondary lh-lg">
-                                <li>🏠 Jl. Jaha Gg. Mujahidin No.25, RT.9/RW.1, Kalisari, Kec. Ps. Rebo, Kota Jakarta Timur, Daerah Khusus Ibukota Jakarta 13790</li>
-                                <li>Jakarta, Indonesia</li>
-                            </ul>
-                        </div>
-                        <div className="col-md-4">
-                            <h5 className="fw-bold mb-3">Payment Method</h5>
-                            <p className="small text-secondary">DANA, OVO, Bank Transfer</p>
-                        </div>
-                    </div>
-                    <div className="text-center mt-5 pt-3 border-top border-secondary small text-secondary">
-                        &copy; 2025 Luxima Bookstore. All rights reserved.
-                    </div>
-                </div>
-            </footer>
-    </div>
-  );
-}
+   );
+};
 
 export default Cart;
