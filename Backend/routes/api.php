@@ -47,9 +47,12 @@ Route::middleware('auth:sanctum')->group(function () {
     |--- KHUSUS USER (PEMBELI) ---
     | Fitur yang hanya dimiliki pelanggan
     */
-    Route::apiResource('carts', CartController::class);
-    // Tambahkan rute transaksi/checkout user di sini jika ada
-
+    Route::middleware('role:user')->group(function () {
+        Route::apiResource('carts', CartController::class);
+        // Contoh rute pelanggan lainnya di masa depan:
+        // Route::post('/checkout', [OrderController::class, 'store']);
+        // Route::get('/my-orders', [OrderController::class, 'index']);
+    });
 
     /*
     |--- KHUSUS ADMIN ---
