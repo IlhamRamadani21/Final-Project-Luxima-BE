@@ -11,61 +11,42 @@ use Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
-| 1. ROUTE PUBLIC (GUEST)
-| Bisa diakses siapa saja tanpa login.
+| 1. ROUTE PUBLIC (GUEST) - Tidak perlu Login
 |--------------------------------------------------------------------------
 */
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
-// Guest hanya bisa LIHAT daftar buku, penulis, dan genre
 Route::get('/books', [BookController::class, 'index']);
 Route::get('/books/{book}', [BookController::class, 'show']);
-
 Route::get('/authors', [AuthorController::class, 'index']);
 Route::get('/authors/{author}', [AuthorController::class, 'show']);
-
-
 Route::get('/genres', [GenreController::class, 'index']);
 Route::get('/genres/{genre}', [GenreController::class, 'show']);
 Route::get('/segmentations', [SegmentationController::class, 'index']);
-Route::get('/segmentations/{segemention}', [GenreController::class, 'show']);
+// Perbaikan: Ganti GenreController menjadi SegmentationController & benahi penulisan variable
+Route::get('/segmentations/{segmentation}', [SegmentationController::class, 'show']);
 
 /*
 |--------------------------------------------------------------------------
-| 2. ROUTE PROTECTED (USER & ADMIN)
-| Harus login (Sanctum) untuk semua fungsi di bawah ini.
+| 2. ROUTE PROTECTED - Wajib Login
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth:sanctum')->group(function () {
 
-    // Profil & Logout
     Route::get('/user', fn (Request $request) => $request->user());
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    /*
-    |--- KHUSUS USER (PEMBELI) ---
-    | Fitur yang hanya dimiliki pelanggan
-    */
+    /* --- KHUSUS USER (PEMBELI) --- */
     Route::middleware('role:user')->group(function () {
         Route::apiResource('carts', CartController::class);
-        // Contoh rute pelanggan lainnya di masa depan:
-        // Route::post('/checkout', [OrderController::class, 'store']);
-        // Route::get('/my-orders', [OrderController::class, 'index']);
     });
 
-    /*
-    |--- KHUSUS ADMIN ---
-    | Menggunakan middleware tambahan 'admin' (Opsional jika Anda sudah buat middleware-nya)
-    | Admin bisa melakukan CRUD (Create, Update, Delete)
-    */
+    /* --- KHUSUS ADMIN (Bisa Tambah, Edit, Hapus) --- */
     Route::middleware('role:admin')->group(function () {
-
-    // Admin mengelola Master Data
-    Route::apiResource('books', BookController::class)->except(['index', 'show']);
-    Route::apiResource('authors', AuthorController::class)->except(['index', 'show']);
-    Route::apiResource('genres', GenreController::class)->except(['index', 'show']);
-    Route::apiResource('segmentations', SegmentationController::class)->except(['index', 'show']);
-});
-
+        Route::apiResource('books', BookController::class)->except(['index', 'show']);
+        Route::apiResource('authors', AuthorController::class)->except(['index', 'show']);
+        Route::apiResource('genres', GenreController::class)->except(['index', 'show']);
+        Route::apiResource('segmentations', SegmentationController::class)->except(['index', 'show']);
+    });
 });
