@@ -70,18 +70,19 @@ const BookList = () => {
 
    // --- DELETE HANDLER ---
    const handleDelete = async (id) => {
-      if (!window.confirm("Yakin ingin menghapus buku ini?")) return;
-      try {
-         await api.delete(`/books/${id}`);
-         setBooks((prevBooks) => prevBooks.filter((b) => b.id !== id));
-         setSuccess("Buku berhasil dihapus.");
-         window.scrollTo({ top: 0, behavior: "smooth" });
-      } catch (err) {
-         console.log(err);
-         setError("Terjadi kesalahan.");
-         window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-   };
+    if (!window.confirm("Yakin ingin menghapus buku ini?")) return;
+    try {
+       // Token otomatis terkirim lewat interceptor di file api.js
+       await api.delete(`/books/${id}`);
+       
+       setBooks((prevBooks) => prevBooks.filter((b) => b.id !== id));
+       setSuccess("Buku berhasil dihapus.");
+       window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+       console.log(err.response); // Cek log jika masih error
+       setError(err.response?.data?.message || "Gagal menghapus buku.");
+    }
+};
 
    return (
       <div className="container-fluid px-2 px-md-4 py-4 bg-light min-vh-100 font-sans">
