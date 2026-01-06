@@ -40,6 +40,9 @@ class BookController extends Controller
             });
         }
 
+        if ($request->has('is_best_seller') && $request->is_best_seller == '1') {
+            $query->where('is_best_seller', true);
+        }
         $books = $query->get();
 
         return response()->json([
@@ -71,9 +74,10 @@ class BookController extends Controller
                 'kertas_isi' => 'nullable|string|max:50',
                 'warna_cover' => 'nullable|string|max:50',
                 'warna_isi' => 'nullable|string|max:50',
-                'description'     => 'nullable|string',
+                'description' => 'nullable|string',
                 'harga' => 'required|numeric|min:0',
-                'stok'          => 'required|integer|min:0',
+                'is_best_seller' => 'boolean',
+                'stok' => 'required|integer|min:0',
                 'tgl_surat_keputusan' => 'nullable|date',
                 'no_surat_puskurbuk' => 'nullable|string|max:100',
                 'catatan' => 'nullable|string',
@@ -178,9 +182,10 @@ class BookController extends Controller
                 'kertas_isi' => 'nullable|string|max:50',
                 'warna_cover' => 'nullable|string|max:50',
                 'warna_isi' => 'nullable|string|max:50',
-                'deskripsi'     => 'nullable|string',
+                'deskripsi' => 'nullable|string',
                 'harga' => 'required|numeric|min:0',
-                'stok'          => 'required|integer|min:0',
+                'is_best_seller' => 'boolean',
+                'stok' => 'required|integer|min:0',
                 'tgl_surat_keputusan' => 'nullable|date',
                 'no_surat_puskurbuk' => 'nullable|string|max:100',
                 'catatan' => 'nullable|string',

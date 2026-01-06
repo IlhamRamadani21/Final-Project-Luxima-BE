@@ -12,6 +12,7 @@ import Register from "./pages/Register";
 import About from "./pages/About";
 import Category from "./pages/Category";
 import DetailBook from "./pages/DetailBook";
+import BestSeller from "./pages/BestSeller";
 
 // Import Pages User (Butuh Login)
 import Cart from "./pages/Cart";
@@ -41,6 +42,7 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/kategori" element={<Category />} />
             <Route path="/kategori/detail/:id" element={<DetailBook />} />
+            <Route path="/best-seller" element={<BestSeller />} />
 
             {/* --- USER ROUTES (Wajib Login) --- */}
             <Route element={<PrivateRoute />}>
