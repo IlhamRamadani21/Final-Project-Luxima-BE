@@ -13,12 +13,17 @@ function Home() {
    useEffect(() => {
       const fetchBooks = async () => {
          try {
-            // Panggil API dengan parameter search
-            const response = await api.get("/books", {
-               params: {
-                  search: searchQuery,
-               },
-            });
+            // Logic: Jika ada search query, cari berdasarkan keyword.
+            // Jika TIDAK ada search query, tampilkan BEST SELLER.
+            const params = {};
+            
+            if (searchQuery) {
+               params.search = searchQuery;
+            } else {
+               params.is_best_seller = 1; // Filter khusus best seller
+            }
+
+            const response = await api.get("/books", { params });
 
             setBooks(response.data.data || response.data || []);
          } catch (error) {
@@ -35,13 +40,21 @@ function Home() {
       return colors[index % colors.length];
    };
 
-   // --- RENDER TAMPILAN ---
+   // Format Harga
+   const formatPrice = (price) => {
+      return new Intl.NumberFormat("id-ID", {
+         style: "currency",
+         currency: "IDR",
+         minimumFractionDigits: 0,
+      }).format(price);
+   };
+
    return (
-      <div>
-         {/* 1. TOP HEADER (container-fluid px-4) */}
+      <div className="min-vh-100" style={{ backgroundColor: "#f9f9f9", fontFamily: "Segoe UI, sans-serif" }}>
+         {/* 1. TOP HEADER */}
          <Navbar />
 
-         {/* 3. KONTEN UTAMA (container-fluid px-4) */}
+         {/* 3. KONTEN UTAMA */}
          <div className="container-fluid px-4 my-5">
             {/* HERO SECTION */}
             <section className="py-4">
@@ -55,59 +68,14 @@ function Home() {
                      </button>
 
                      <div className="d-flex gap-2 mt-5">
-                        <span
-                           style={{
-                              width: 30,
-                              height: 4,
-                              background: "#5D7B93",
-                              borderRadius: 2,
-                           }}
-                        ></span>
-                        <span
-                           style={{
-                              width: 30,
-                              height: 4,
-                              background: "#ddd",
-                              borderRadius: 2,
-                           }}
-                        ></span>
-                        <span
-                           style={{
-                              width: 30,
-                              height: 4,
-                              background: "#ddd",
-                              borderRadius: 2,
-                           }}
-                        ></span>
+                        <span style={{ width: 30, height: 4, background: "#5D7B93", borderRadius: 2 }}></span>
+                        <span style={{ width: 30, height: 4, background: "#ddd", borderRadius: 2 }}></span>
+                        <span style={{ width: 30, height: 4, background: "#ddd", borderRadius: 2 }}></span>
                      </div>
                   </div>
                   <div className="col-md-6 position-relative d-flex justify-content-center mt-5 mt-md-0" style={{ minHeight: "400px" }}>
-                     <div
-                        className="shadow"
-                        style={{
-                           width: 260,
-                           height: 340,
-                           background: "#D90429",
-                           position: "absolute",
-                           right: "35%",
-                           top: "5%",
-                           zIndex: 1,
-                           borderRadius: "8px",
-                        }}
-                     ></div>
-                     <div
-                        className="shadow"
-                        style={{
-                           width: 240,
-                           height: 320,
-                           background: "#FFC09F",
-                           position: "absolute",
-                           right: "20%",
-                           top: "20%",
-                           zIndex: 2,
-                           borderRadius: "8px",
-                        }}
-                     ></div>
+                     <div className="shadow" style={{ width: 260, height: 340, background: "#D90429", position: "absolute", right: "35%", top: "5%", zIndex: 1, borderRadius: "8px" }}></div>
+                     <div className="shadow" style={{ width: 240, height: 320, background: "#FFC09F", position: "absolute", right: "20%", top: "20%", zIndex: 2, borderRadius: "8px" }}></div>
                   </div>
                </div>
             </section>
@@ -116,29 +84,22 @@ function Home() {
 
             {/* DYNAMIC BOOK GRID */}
             <div className="d-flex justify-content-between align-items-end mb-4 px-lg-2">
-               <h5 className="fw-bold text-uppercase text-dark m-0 fs-4">Eksplor Bestsellers</h5>
-               <Link to="/kategori" className="text-muted small text-decoration-none fw-bold">
+               <h5 className="fw-bold text-uppercase text-dark m-0 fs-4">
+                  {searchQuery ? "Hasil Pencarian" : "Eksplor Bestsellers"}
+               </h5>
+               
+               {/* Link mengarah ke halaman Best Seller */}
+               <Link to="/best-seller" className="text-muted small text-decoration-none fw-bold">
                   View more &gt;
                </Link>
             </div>
 
             <div className="row g-4 mb-5">
-               {/* Placeholder Statis (Visual Only) */}
-               {books.length === 0 && (
-                  <>
-                     <div className="col-md-6 col-lg-3">
-                        <div className="rounded shadow-sm" style={{ height: "200px", backgroundColor: "#D90429" }}></div>
-                     </div>
-                     <div className="col-md-6 col-lg-3">
-                        <div className="rounded shadow-sm" style={{ height: "200px", backgroundColor: "#FFC09F" }}></div>
-                     </div>
-                     <div className="col-md-6 col-lg-3">
-                        <div className="rounded shadow-sm" style={{ height: "200px", backgroundColor: "#2D6A4F" }}></div>
-                     </div>
-                     <div className="col-md-6 col-lg-3">
-                        <div className="rounded shadow-sm" style={{ height: "200px", backgroundColor: "#D3D3D3" }}></div>
-                     </div>
-                  </>
+               {/* Placeholder Statis (Visual Only - Jika loading/kosong) */}
+               {books.length === 0 && !searchQuery && (
+                  <div className="col-12 text-center py-5">
+                     <p className="text-muted">Belum ada data Best Seller.</p>
+                  </div>
                )}
 
                {/* Data Buku Asli */}
@@ -161,15 +122,15 @@ function Home() {
                                     className="w-100 h-100"
                                     style={{ objectFit: "cover" }}
                                     onError={(e) => {
-                                       e.target.style.display = "none"; // Sembunyikan gambar jika link rusak (404)
-                                       e.target.nextSibling.style.display = "block"; // Munculkan placeholder
+                                       e.target.style.display = "none";
+                                       e.target.nextSibling.style.display = "block";
                                     }}
                                  />
                               ) : (
                                  <span className="fs-1 opacity-50">📖</span>
                               )}
 
-                              {/* Hidden by default, muncul jika gambar error */}
+                              {/* Fallback Element */}
                               {book.cover_buku && (
                                  <span className="fs-1 opacity-50 position-absolute" style={{ display: "none" }}>
                                     📖
@@ -186,13 +147,10 @@ function Home() {
                               </h6>
                               <div className="d-flex justify-content-between align-items-center border-top pt-2">
                                  <span className="fw-bold text-dark">
-                                    {/* Pastikan menggunakan format Rupiah Indonesia */}
-                                    Rp {book.harga ? Number(book.harga).toLocaleString("id-ID") : "0"}
+                                    {formatPrice(book.harga)}
                                  </span>
                                  <button
-                                    onClick={() => {
-                                       addToCart(book.id);
-                                    }}
+                                    onClick={() => addToCart(book.id)}
                                     className="btn btn-link text-decoration-none p-0 small fw-bold"
                                     style={{ color: "#3498db", fontSize: "13px" }}
                                  >
@@ -206,7 +164,7 @@ function Home() {
             </div>
          </div>
 
-         {/* 5. FOOTER (container-fluid px-4) */}
+         {/* 5. FOOTER */}
          <footer className="text-white pt-5 pb-4 mt-auto" style={{ backgroundColor: "#1a252f" }}>
             <div className="container-fluid px-4">
                <div className="row g-4">
