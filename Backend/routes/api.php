@@ -1,30 +1,52 @@
 <?php
+
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\SegmentationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\CartController;
-use App\Models\Cart;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 
-// Route Public (Tidak butuh token)
+/*
+|--------------------------------------------------------------------------
+| 1. ROUTE PUBLIC (GUEST) - Tidak perlu Login
+|--------------------------------------------------------------------------
+*/
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
-// Route Protected (Butuh Token)
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-    // Nanti pindahkan resource route ke sini
+Route::get('/books', [BookController::class, 'index']);
+Route::get('/books/{book}', [BookController::class, 'show']);
+Route::get('/authors', [AuthorController::class, 'index']);
+Route::get('/authors/{author}', [AuthorController::class, 'show']);
+Route::get('/genres', [GenreController::class, 'index']);
+Route::get('/genres/{genre}', [GenreController::class, 'show']);
+Route::get('/segmentations', [SegmentationController::class, 'index']);
+// Perbaikan: Ganti GenreController menjadi SegmentationController & benahi penulisan variable
+Route::get('/segmentations/{segmentation}', [SegmentationController::class, 'show']);
 
-    Route::get('/user', function (Request $request) {
-        return $request->user();
+/*
+|--------------------------------------------------------------------------
+| 2. ROUTE PROTECTED - Wajib Login
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/user', fn (Request $request) => $request->user());
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    /* --- KHUSUS USER (PEMBELI) --- */
+    Route::middleware('role:user')->group(function () {
+        Route::apiResource('carts', CartController::class);
+    });
+
+    /* --- KHUSUS ADMIN (Bisa Tambah, Edit, Hapus) --- */
+    Route::middleware('role:admin')->group(function () {
+        Route::apiResource('books', BookController::class)->except(['index', 'show']);
+        Route::apiResource('authors', AuthorController::class)->except(['index', 'show']);
+        Route::apiResource('genres', GenreController::class)->except(['index', 'show']);
+        Route::apiResource('segmentations', SegmentationController::class)->except(['index', 'show']);
     });
 });
-
-Route::resource('books', BookController::class);
-Route::resource('authors', AuthorController::class);
-Route::resource('genres', GenreController::class);
-Route::resource('segmentations', SegmentationController::class);
-Route::resource('carts', CartController::class);

@@ -74,6 +74,7 @@ const BookForm = () => {
                         judul: book.judul || '',
                         isbn: book.isbn || '',
                         harga: book.harga || '',
+                        stok: book.stok || '',
                         penerbit: book.penerbit || '',
                         tahun_terbit: book.tahun_terbit || '',
                         hal: book.hal || '',
@@ -270,6 +271,12 @@ const BookForm = () => {
                                         <label className="form-label fw-semibold text-secondary">Harga (Rp) <span className="text-danger">*</span></label>
                                         <input type="number" name="harga" className={`form-control ${isInvalid('harga')}`} placeholder="0" value={formData.harga} onChange={handleChange} />
                                         <FieldError fieldName="harga" />
+                                    </div>
+                                    {/* Stok */}
+                                    <div className="col-md-6">
+                                        <label className="form-label fw-semibold text-secondary">Stok <span className="text-danger">*</span></label>
+                                        <input type="number" name="stok" className={`form-control ${isInvalid('stok')}`} placeholder="0" value={formData.stok} onChange={handleChange} />
+                                        <FieldError fieldName="stok" />
                                     </div>
                                 </div>
 

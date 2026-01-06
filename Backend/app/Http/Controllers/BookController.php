@@ -71,7 +71,7 @@ class BookController extends Controller
                 'kertas_isi' => 'nullable|string|max:50',
                 'warna_cover' => 'nullable|string|max:50',
                 'warna_isi' => 'nullable|string|max:50',
-                'deskripsi'     => 'nullable|string',
+                'description'     => 'nullable|string',
                 'harga' => 'required|numeric|min:0',
                 'stok'          => 'required|integer|min:0',
                 'tgl_surat_keputusan' => 'nullable|date',

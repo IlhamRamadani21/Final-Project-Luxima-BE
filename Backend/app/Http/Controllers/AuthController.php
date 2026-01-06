@@ -31,7 +31,7 @@ class AuthController extends Controller
             ]);
         }
 
-        // Opsional: Cek role jika hanya admin yang boleh login di endpoint ini
+        // Opsional: Cek role jika cuma admin yang boleh login di endpoint ini
         // if (!$user->isAdmin()) {
         //     return response()->json([
         //         'message' => 'Akses ditolak. Hanya Admin yang diizinkan.'
@@ -67,6 +67,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'role' => 'nullable|in:admin,user',
         ]);
 
         // 2. Buat User Baru
@@ -74,6 +75,7 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => $request->role ?? 'user', // Jika role kosong, otomatis jadi 'user'
         ]);
 
         // 3. Kembalikan Respon Sukses
