@@ -9,15 +9,15 @@ const TableHeader = ({
     placeholder = "Cari data..."
 }) => {
     return (
-        <div className="card-header bg-white py-3 px-4 border-bottom">
-            <div className="row g-3 align-items-center justify-content-between">
+        <div className="card-header bg-white py-3 px-3 px-md-4 border-bottom">
+            <div className="row g-3 align-items-center">
                 
                 {/* KIRI: Rows Per Page Selector */}
-                <div className="col-auto d-flex align-items-center">
-                    <span className="text-muted small me-2 fw-semibold">Tampilkan</span>
+                <div className="col-12 col-sm-auto d-flex align-items-center justify-content-center justify-content-sm-start">
+                    <label className="text-muted small me-2 fw-semibold mb-0">Tampilkan</label>
                     <select 
-                        className="form-select form-select-sm border-secondary border-opacity-25" 
-                        style={{ width: "70px", cursor: "pointer" }} 
+                        className="form-select form-select-sm border-secondary border-opacity-25 shadow-sm" 
+                        style={{ width: "75px", cursor: "pointer" }} 
                         value={itemsPerPage} 
                         onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
                     >
@@ -29,19 +29,28 @@ const TableHeader = ({
                     <span className="text-muted small ms-2 fw-semibold">baris</span>
                 </div>
 
-                {/* KANAN: Search Bar */}
-                <div className="col-12 col-md-4">
-                    <div className="input-group input-group-sm shadow-sm">
-                        <span className="input-group-text bg-white border-end-0">
+                {/* KANAN: Search Bar - Menyesuaikan lebar secara otomatis */}
+                <div className="col-12 col-sm-6 col-md-4 ms-auto">
+                    <div className="input-group input-group-sm shadow-sm border rounded">
+                        <span className="input-group-text bg-white border-0">
                             <Search size={16} className="text-muted" />
                         </span>
                         <input 
                             type="text" 
-                            className="form-control border-start-0 bg-white" 
+                            className="form-control border-0 bg-white ps-1" 
                             placeholder={placeholder} 
                             value={searchTerm} 
                             onChange={(e) => onSearchChange(e.target.value)} 
                         />
+                        {searchTerm && (
+                            <button 
+                                className="btn btn-white border-0 text-muted" 
+                                type="button" 
+                                onClick={() => onSearchChange("")}
+                            >
+                                &times;
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

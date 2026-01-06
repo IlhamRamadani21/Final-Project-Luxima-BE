@@ -1,54 +1,105 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-
-const CartContext = createContext();
+import React, { createContext, useState, useEffect, useCallback } from "react";
+import api from "../api";
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const useCart = () => useContext(CartContext);
+export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-    // Inisialisasi cart dari localStorage agar tidak hilang saat refresh browser
-    const [cart, setCart] = useState(() => {
-        const savedCart = localStorage.getItem('cart');
-        return savedCart ? JSON.parse(savedCart) : [];
-    });
+   // Kita simpan array lengkap, bukan cuma jumlah
+   const [cart, setCart] = useState([]);
+   const [cartCount, setCartCount] = useState(0);
 
-    // Setiap kali cart berubah, simpan otomatis ke localStorage
-    useEffect(() => {
-        localStorage.setItem('cart', JSON.stringify(cart));
-    }, [cart]);
+   // Fungsi fetch data terbaru dari server
+   const refreshCart = useCallback(async () => {
+      const token = localStorage.getItem('token');
+        const userString = localStorage.getItem('user');
+        const user = userString ? JSON.parse(userString) : null;
 
-    // Fungsi Tambah ke Keranjang
-    const addToCart = (book) => {
-        setCart((prevCart) => {
-            // Opsional: Cek apakah buku sudah ada, jika ya mungkin tambah quantity (logic sederhana dulu: tambah item baru)
-            return [...prevCart, book];
-        });
-        alert('Berhasil masuk keranjang!');
-    };
+      // Jika tidak ada token (belum login), kosongkan cart
+       if (!token) {
+            setCart([]);
+            setCartCount(0);
+            return;
+        }
 
-    // Fungsi Hapus dari Keranjang (berdasarkan index atau ID)
-    const removeFromCart = (index) => {
-        setCart((prevCart) => prevCart.filter((_, i) => i !== index));
-    };
+        // Cek Role
+        // Jika user adalah ADMIN, jangan panggil API cart
+        if (user && user.role === 'admin') {
+            setCart([]);
+            setCartCount(0);
+            return;
+        }
 
-    // Fungsi Clear Cart (setelah checkout)
-    const clearCart = () => {
-        setCart([]);
-        localStorage.removeItem('cart');
-    };
+        try {
+            const response = await api.get('/carts');
+            const items = response.data.data || [];
+            
+            setCart(items);
+            
+            const total = items.reduce((acc, item) => acc + (item.quantity || 1), 0);
+            setCartCount(total);
+        } catch (error) {
+            // Suppress error 403 agar tidak memenuhi console jika kebetulan lolos
+            if (error.response && error.response.status === 403) {
+                return;
+            }
+            console.error("Gagal sinkronisasi keranjang:", error);
+        }
+    }, []);
 
-    // Data dan fungsi yang akan disebar
-    const value = {
-        cart,
-        addToCart,
-        removeFromCart,
-        clearCart,
-        cartCount: cart.length
-    };
+   // Load cart saat aplikasi pertama kali dibuka (mount)
+   useEffect(() => {
+      const loadCart = async () => {
+         await refreshCart();
+      };
 
-    return (
-        <CartContext.Provider value={value}>
-            {children}
-        </CartContext.Provider>
-    );
+      loadCart();
+   }, [refreshCart]);
+
+   // Fungsi Add to Cart (Global Wrapper)
+   const addToCart = async (bookId, qty = 1) => {
+      const token = localStorage.getItem("token");
+
+      // Cek Login
+      if (!token) {
+         alert("Silakan login terlebih dahulu untuk berbelanja.");
+         window.location.href = "/login";
+         return false;
+      }
+
+      try {
+         // Kirim Request
+         await api.post("/carts", {
+            book_id: bookId,
+            quantity: qty,
+         });
+
+         // Refresh Data Cart agar Navbar update
+         await refreshCart();
+         alert("Berhasil masuk keranjang!");
+         return true;
+      } catch (error) {
+         // Debug Error yang lebih jelas
+         console.error(
+            "Gagal tambah ke keranjang:",
+            error.response?.data || error.message
+         );
+         alert(error.response?.data?.message || "Gagal menambahkan buku.");
+         return false;
+      }
+   };
+
+   // Fungsi Logout Helper (Membersihkan state lokal)
+   const clearCartLocal = () => {
+      setCart([]);
+      setCartCount(0);
+   };
+
+   return (
+      <CartContext.Provider
+         value={{ cart, cartCount, refreshCart, addToCart, clearCartLocal }}
+      >
+         {children}
+      </CartContext.Provider>
+   );
 };

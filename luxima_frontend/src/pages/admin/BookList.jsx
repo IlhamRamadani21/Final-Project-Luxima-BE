@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react"; // Tambahkan useMemo
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
    Edit,
@@ -33,7 +33,7 @@ const BookList = () => {
          });
          setBooks(response.data.data || []);
       } catch (err) {
-         console.log(err);
+         console.error(err);
          setError("Gagal mengambil data buku.");
       } finally {
          setLoading(false);
@@ -47,18 +47,21 @@ const BookList = () => {
       return () => clearTimeout(delayDebounceFn);
    }, [fetchBooks]);
 
-   // Reset ke halaman 1 jika filter atau pencarian berubah
+   // Reset ke halaman 1 jika filter berubah
    useEffect(() => {
       setCurrentPage(1);
    }, [searchTerm, itemsPerPage]);
 
    // Auto hide notifikasi
    useEffect(() => {
-      if (success) {
-         const timer = setTimeout(() => setSuccess(null), 3000);
+      if (success || error) {
+         const timer = setTimeout(() => {
+            setSuccess(null);
+            setError(null);
+         }, 3000);
          return () => clearTimeout(timer);
       }
-   }, [success]);
+   }, [success, error]);
 
    // --- LOGIC PAGINATION ---
    const indexOfLastItem = currentPage * itemsPerPage;
@@ -70,24 +73,21 @@ const BookList = () => {
 
    // --- DELETE HANDLER ---
    const handleDelete = async (id) => {
-    if (!window.confirm("Yakin ingin menghapus buku ini?")) return;
-    try {
-       // Token otomatis terkirim lewat interceptor di file api.js
-       await api.delete(`/books/${id}`);
-       
-       setBooks((prevBooks) => prevBooks.filter((b) => b.id !== id));
-       setSuccess("Buku berhasil dihapus.");
-       window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (err) {
-       console.log(err.response); // Cek log jika masih error
-       setError(err.response?.data?.message || "Gagal menghapus buku.");
-    }
-};
+      if (!window.confirm("Yakin ingin menghapus buku ini?")) return;
+      try {
+         await api.delete(`/books/${id}`);
+         setBooks((prevBooks) => prevBooks.filter((b) => b.id !== id));
+         setSuccess("Buku berhasil dihapus.");
+         window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (err) {
+         setError(err.response?.data?.message || "Gagal menghapus buku.");
+      }
+   };
 
    return (
-      <div className="container-fluid px-2 px-md-4 py-4 bg-light min-vh-100 font-sans">
-         {/* Header */}
-         <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3">
+      <div className="container-fluid px-3 px-md-4 py-4 bg-light min-vh-100 font-sans">
+         {/* HEADER */}
+         <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
             <div>
                <h2 className="h4 fw-bold text-dark m-0 d-flex align-items-center">
                   <BookOpen className="me-2 text-primary" size={24} /> Manajemen Buku
@@ -102,7 +102,7 @@ const BookList = () => {
             </Link>
          </div>
 
-         {/* Alerts */}
+         {/* ALERTS */}
          {(success || error) && (
             <div className={`alert ${success ? "alert-success" : "alert-danger"} alert-dismissible fade show shadow-sm border-0 rounded-3 mb-4`} role="alert">
                <div className="d-flex align-items-center">
@@ -114,7 +114,6 @@ const BookList = () => {
          )}
 
          <div className="card shadow-sm border-0 rounded-4 overflow-hidden">
-            {/* Toolbar */}
             <TableHeader 
                itemsPerPage={itemsPerPage}
                onItemsPerPageChange={setItemsPerPage}
@@ -148,43 +147,43 @@ const BookList = () => {
                               <td colSpan="5" className="text-center py-5">
                                  <div className="text-muted opacity-25 mb-3"><Filter size={48} /></div>
                                  <h6 className="text-dark fw-bold">Tidak ada data ditemukan</h6>
-                                 <p className="text-muted small m-0">Gunakan kata kunci lain atau coba reset filter.</p>
+                                 <p className="text-muted small m-0">Coba kata kunci lain.</p>
                               </td>
                            </tr>
                         ) : (
                            currentItems.map((book) => (
-                              <tr key={book.id} className="d-block d-lg-table-row border-bottom py-3 py-lg-0">
+                              <tr key={book.id} className="d-block d-lg-table-row border-bottom p-3 p-lg-0">
                                  {/* Cover */}
-                                 <td className="px-4 py-2 py-lg-3 d-inline-block d-lg-table-cell text-center text-lg-start align-middle">
-                                    <div className="rounded shadow-sm border overflow-hidden bg-light" style={{ width: "60px", height: "85px" }}>
+                                 <td className="px-lg-4 py-2 d-flex d-lg-table-cell justify-content-center justify-content-lg-start">
+                                    <div className="rounded shadow-sm border overflow-hidden bg-light" style={{ width: "65px", height: "90px" }}>
                                        <img 
-                                          src={book.cover_buku ? `http://127.0.0.1:8000/storage/${book.cover_buku}` : "https://via.placeholder.com/60x85?text=No+Cover"} 
+                                          src={book.cover_buku ? `http://127.0.0.1:8000/storage/${book.cover_buku}` : "https://via.placeholder.com/65x90?text=No+Cover"} 
                                           className="w-100 h-100 object-fit-cover" 
                                           alt={book.judul}
-                                          onError={(e) => { e.target.src = "https://via.placeholder.com/60x85?text=Err+Img"; }}
+                                          onError={(e) => { e.target.src = "https://via.placeholder.com/65x90?text=Err"; }}
                                        />
                                     </div>
                                  </td>
 
                                  {/* Detail */}
-                                 <td className="px-4 py-2 py-lg-3 d-block d-lg-table-cell align-middle">
-                                    <div className="fw-bold text-dark mb-1" style={{ fontSize: "0.95rem", lineHeight: "1.3" }}>{book.judul}</div>
-                                    <div className="d-flex flex-wrap gap-2 mt-1">
-                                       <span className="badge bg-light text-secondary border fw-normal" style={{ fontSize: "0.7rem" }}>ISBN: {book.isbn}</span>
-                                       <span className="badge bg-info bg-opacity-10 text-info border border-info border-opacity-10" style={{ fontSize: "0.7rem" }}>{book.author?.nama || "Luxima"}</span>
+                                 <td className="px-lg-4 py-2 d-block d-lg-table-cell text-center text-lg-start">
+                                    <div className="fw-bold text-dark mb-1" style={{ fontSize: "1rem" }}>{book.judul}</div>
+                                    <div className="d-flex flex-wrap justify-content-center justify-content-lg-start gap-2 mt-1">
+                                       <span className="badge bg-light text-secondary border fw-normal">ISBN: {book.isbn}</span>
+                                       <span className="badge bg-info bg-opacity-10 text-info border border-info border-opacity-10">{book.author?.nama || "N/A"}</span>
                                     </div>
                                  </td>
 
                                  {/* Kategori */}
-                                 <td className="px-4 py-2 py-lg-3 d-inline-block d-lg-table-cell align-middle">
-                                    <span className="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 px-3 py-2" style={{ fontSize: "0.75rem" }}>
+                                 <td className="px-lg-4 py-2 d-block d-lg-table-cell text-center text-lg-start">
+                                    <span className="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 px-3 py-2">
                                        {book.kategori?.kategori || "Umum"}
                                     </span>
                                  </td>
 
-                                 {/* Harga */}
-                                 <td className="px-4 py-2 py-lg-3 d-inline-block d-lg-table-cell align-middle">
-                                    <div className="fw-bold text-success" style={{ fontSize: "0.9rem" }}>
+                                 {/* Harga & Stok */}
+                                 <td className="px-lg-4 py-2 d-block d-lg-table-cell text-center text-lg-start">
+                                    <div className="fw-bold text-success">
                                        Rp {Number(book.harga).toLocaleString("id-ID")}
                                     </div>
                                     <div className="text-muted small">
@@ -193,10 +192,14 @@ const BookList = () => {
                                  </td>
 
                                  {/* Aksi */}
-                                 <td className="px-4 py-3 py-lg-3 d-block d-lg-table-cell text-lg-end align-middle">
-                                    <div className="d-flex justify-content-lg-end gap-2">
-                                       <Link to={`/admin/books/edit/${book.id}`} className="btn btn-outline-warning btn-sm shadow-sm p-2 rounded"><Edit size={16} /></Link>
-                                       <button onClick={() => handleDelete(book.id)} className="btn btn-outline-danger btn-sm shadow-sm p-2 rounded"><Trash2 size={16} /></button>
+                                 <td className="px-lg-4 py-3 d-block d-lg-table-cell">
+                                    <div className="d-flex justify-content-center justify-content-lg-end gap-2">
+                                       <Link to={`/admin/books/edit/${book.id}`} className="btn btn-outline-warning btn-sm shadow-sm p-2 rounded flex-fill flex-lg-grow-0">
+                                          <Edit size={18} className="d-block mx-auto" />
+                                       </Link>
+                                       <button onClick={() => handleDelete(book.id)} className="btn btn-outline-danger btn-sm shadow-sm p-2 rounded flex-fill flex-lg-grow-0">
+                                          <Trash2 size={18} className="d-block mx-auto" />
+                                       </button>
                                     </div>
                                  </td>
                               </tr>
@@ -207,7 +210,6 @@ const BookList = () => {
                </div>
             </div>
 
-            {/* Footer Pagination */}
             <Pagination 
                currentPage={currentPage}
                totalItems={books.length}

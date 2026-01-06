@@ -14,4 +14,9 @@ class Segmentation extends Model
     {
         return $this->hasMany(Genre::class, 'segmentasi_id');
     }
+
+    public function books()
+    {
+        return $this->hasMany(Book::class, 'segmentasi_id');
+    }
 }
