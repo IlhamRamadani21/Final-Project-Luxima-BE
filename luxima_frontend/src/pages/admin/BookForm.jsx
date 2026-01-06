@@ -275,7 +275,7 @@ const BookForm = () => {
                                     {/* Stok */}
                                     <div className="col-md-6">
                                         <label className="form-label fw-semibold text-secondary">Stok <span className="text-danger">*</span></label>
-                                        <input type="number" name="stok" className={`form-control ${isInvalid('stok')}`} placeholder="0" value={formData.stok} onChange={handleChange} />
+                                        <input type="number" name="stok" className={`form-control ${isInvalid('stok')}`} placeholder="0" value={formData.catatan} onChange={handleChange} />
                                         <FieldError fieldName="stok" />
                                     </div>
                                 </div>

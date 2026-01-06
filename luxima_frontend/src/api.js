@@ -22,4 +22,17 @@ api.interceptors.request.use(
     }
 );
 
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        // Jika error 401 (Unauthorized), paksa logout
+        if (error.response && error.response.status === 401) {
+            console.error("Session expired or unauthorized. Redirecting to login...");
+            localStorage.clear();
+            window.location.href = '/login'; 
+        }
+        return Promise.reject(error);
+    }
+);
+
 export default api;

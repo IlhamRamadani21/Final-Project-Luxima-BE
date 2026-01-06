@@ -1,52 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../api'; // Pastikan path ini benar sesuai struktur folder Anda
-import { useCart } from '../context/CartContext'; 
+import { useCart } from '../hooks/useCart'; 
 
 const Navbar = () => {
-    // Ambil data auth dari LocalStorage
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user')) || { name: 'Guest' };
     
     const navigate = useNavigate();
-    const { cart, clearCart } = useCart(); 
+    
+    // Hook useCart agar data realtime dari DB
+    const { cart, cartCount, clearCartLocal, refreshCart } = useCart(); 
 
-    // State untuk Search
     const [keyword, setKeyword] = useState('');
 
+    // Refresh cart saat komponen dimuat (untuk sinkronisasi awal)
+    useEffect(() => {
+        if(token) refreshCart();
+    }, [token, refreshCart]);
+
     const handleLogout = () => {
-        // Hapus semua data auth
-        clearCart();
-        localStorage.clear();
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        clearCartLocal(); // Bersihkan state lokal
         navigate('/login');
     };
 
     const handleSearch = (e) => {
         e.preventDefault();
-        // Redirect ke Home dengan query parameter
-        navigate(`/?search=${keyword}`);
+        navigate(`/kategori?search=${keyword}`);
     };
 
-    const handleCheckout = async () => {
-        if (cart.length === 0) return alert("Keranjang kosong!");
-        const total = cart.reduce((sum, item) => sum + item.harga, 0);
-
-        try {
-            const response = await api.post('/checkout', {
-                items: cart,
-                total_harga: total
-            });
-            alert(`Pesanan Berhasil! ID Transaksi: ${response.data.order_id}`);
-            clearCart();
-        } catch (error) {
-            console.error(error);
-            alert("Checkout Gagal.");
-        }
-    };
+    // Hitung total harga untuk preview dropdown
+    const dropdownTotal = cart.reduce((total, item) => {
+        const harga = item.book?.harga || 0;
+        return total + (harga * item.quantity);
+    }, 0);
 
     return (
         <>
-            {/* 1. TOP HEADER */}
+            {/* TOP HEADER */}
             <header className="text-white py-2 shadow-sm" style={{ background: 'linear-gradient(90deg, #5D7B93 0%, #8FA3B5 100%)' }}>
                 <div className="container-fluid px-4 d-flex justify-content-between align-items-center">
                     {/* Logo */}
@@ -71,35 +63,57 @@ const Navbar = () => {
                         {/* Logic Keranjang */}
                         {token && (
                             <div className="dropdown">
-                                <button className="btn btn-sm text-white d-flex align-items-center gap-1 border-0 bg-transparent" type="button" data-bs-toggle="dropdown">
+                                <button 
+                                    className="btn btn-sm text-white d-flex align-items-center gap-1 border-0 bg-transparent" 
+                                    type="button" 
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false"
+                                >
                                     <div className="position-relative" style={{cursor: 'pointer'}}>
-                                        <span style={{fontSize: '1.4rem'}}><Link to="/keranjang">🛍️</Link></span>
-                                        {cart.length > 0 && (
+                                        <span style={{fontSize: '1.4rem'}}>🛍️</span>
+                                        {cartCount > 0 && (
                                             <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white" style={{fontSize: '0.7rem'}}>
-                                                {cart.length}
+                                                {cartCount}
                                             </span>
                                         )}
                                     </div>
                                 </button>
-                                <ul className="dropdown-menu dropdown-menu-end shadow border-0 p-3" style={{minWidth: '280px'}}>
+                                <ul className="dropdown-menu dropdown-menu-end shadow border-0 p-3" style={{minWidth: '320px'}}>
                                     <li><h6 className="dropdown-header text-uppercase fw-bold">Keranjang Belanja</h6></li>
                                     <li><hr className="dropdown-divider"/></li>
+                                    
                                     {cart.length === 0 ? (
-                                        <li><span className="dropdown-item text-muted small text-center py-3">Keranjang Kosong</span></li>
+                                        <li><div className="dropdown-item text-muted small text-center py-3">Keranjang Kosong</div></li>
                                     ) : (
                                         <>
-                                            <li className="d-flex justify-content-between px-3 py-1 small">
-                                                <span>Total Item:</span>
-                                                <span className="fw-bold">{cart.length}</span>
-                                            </li>
-                                            <li className="d-flex justify-content-between px-3 py-1 small mb-3">
-                                                <span>Total Harga:</span>
-                                                <span className="fw-bold text-success">Rp {cart.reduce((a,b)=>a+b.harga, 0).toLocaleString()}</span>
+                                            {/* Preview 3 Item Teratas */}
+                                            {cart.slice(0, 3).map((item) => (
+                                                <li key={item.id} className="d-flex justify-content-between px-3 py-2 small border-bottom align-items-center">
+                                                    <div className="text-truncate" style={{maxWidth: '180px'}}>
+                                                        <span className="fw-bold d-block text-truncate">{item.book?.judul}</span>
+                                                        <span className="text-muted">{item.quantity} x Rp {Number(item.book?.harga).toLocaleString('id-ID')}</span>
+                                                    </div>
+                                                    <img 
+                                                        src={item.book?.cover_buku ? `http://127.0.0.1:8000/storage/${item.book.cover_buku}` : 'https://via.placeholder.com/30'} 
+                                                        alt="cover" 
+                                                        style={{width: '30px', height: '45px', objectFit:'cover'}}
+                                                        className="rounded"
+                                                    />
+                                                </li>
+                                            ))}
+                                            
+                                            {cart.length > 3 && (
+                                                <li className="text-center py-1 small text-muted">...dan {cart.length - 3} barang lainnya</li>
+                                            )}
+
+                                            <li className="d-flex justify-content-between px-3 py-3 small mt-2">
+                                                <span>Total Estimasi:</span>
+                                                <span className="fw-bold text-success fs-6">Rp {dropdownTotal.toLocaleString('id-ID')}</span>
                                             </li>
                                             <li>
-                                                <button onClick={handleCheckout} className="btn btn-success btn-sm w-100 fw-bold">
-                                                    Checkout Sekarang
-                                                </button>
+                                                <Link to="/keranjang" className="btn btn-primary btn-sm w-100 fw-bold">
+                                                    Lihat Keranjang & Checkout
+                                                </Link>
                                             </li>
                                         </>
                                     )}
@@ -130,7 +144,7 @@ const Navbar = () => {
                 </div>
             </header>
 
-            {/* 2. NAVIGATION */}
+            {/* NAVIGATION */}
             <nav className="bg-white shadow-sm py-3 sticky-top" style={{zIndex: 100}}>
                 <div className="container-fluid px-4">
                     <ul className="nav justify-content-center gap-5 fw-bold text-secondary fs-6">
@@ -146,6 +160,11 @@ const Navbar = () => {
                         <li className="nav-item">
                             <Link to="/about" className="nav-link text-secondary p-0 hover-underline">About Us</Link>
                         </li>
+                        {token && (
+                            <li className="nav-item">
+                                <Link to="/orders" className="nav-link text-primary p-0 hover-underline">Pesanan Saya</Link>
+                            </li>
+                        )}
                     </ul>
                 </div>
             </nav>

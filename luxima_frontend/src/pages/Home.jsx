@@ -2,40 +2,13 @@ import React, { useEffect, useState } from "react";
 import api from "../api";
 import { Link, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { useCart } from "../context/CartContext";
-import axios from "axios";
+import { useCart } from "../hooks/useCart";
 
 function Home() {
    const [books, setBooks] = useState([]);
    const [searchParams] = useSearchParams();
    const searchQuery = searchParams.get("search");
    const { addToCart } = useCart();
-
-   // Di dalam CartProvider
-   const tambahKeranjang = async (book) => {
-      const token = localStorage.getItem("token");
-
-      // 1. Jika Belum Login, arahkan atau beri peringatan
-      if (!token) {
-         alert("Silakan login terlebih dahulu!");
-         return;
-      }
-
-      // 2. Kirim ke Database melalui API
-      await axios.post(
-         "http://localhost:8000/api/carts",
-         {
-            book_id: book.id,
-            quantity: 1,
-         },
-         {
-            headers: {
-               Authorization: `Bearer ${token}`,
-               Accept: "application/json",
-            },
-         }
-      );
-   };
 
    useEffect(() => {
       const fetchBooks = async () => {
@@ -64,13 +37,7 @@ function Home() {
 
    // --- RENDER TAMPILAN ---
    return (
-      <div
-         style={{
-            backgroundColor: "#f9f9f9",
-            minHeight: "100vh",
-            fontFamily: "Segoe UI, sans-serif",
-         }}
-      >
+      <div>
          {/* 1. TOP HEADER (container-fluid px-4) */}
          <Navbar />
 
@@ -224,8 +191,7 @@ function Home() {
                                  </span>
                                  <button
                                     onClick={() => {
-                                       addToCart(book);
-                                       tambahKeranjang(book);
+                                       addToCart(book.id);
                                     }}
                                     className="btn btn-link text-decoration-none p-0 small fw-bold"
                                     style={{ color: "#3498db", fontSize: "13px" }}

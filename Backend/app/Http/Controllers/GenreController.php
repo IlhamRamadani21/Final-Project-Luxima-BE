@@ -11,7 +11,10 @@ class GenreController extends Controller
     public function index()
     {
         // Mengambil semua data genre dari database
-        $genres = Genre::with('books')->get();
+        $genres = Genre::with('books')
+        ->withCount('books')
+        ->latest()
+        ->get();
 
         return response()->json([
             'jumlahData' => $genres->count(),

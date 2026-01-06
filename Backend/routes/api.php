@@ -40,6 +40,10 @@ Route::middleware('auth:sanctum')->group(function () {
     /* --- KHUSUS USER (PEMBELI) --- */
     Route::middleware('role:user')->group(function () {
         Route::apiResource('carts', CartController::class);
+        Route::post('/checkout', [App\Http\Controllers\OrderController::class, 'checkout']);
+        Route::get('/my-orders', [App\Http\Controllers\OrderController::class, 'myOrders']);
+        Route::get('/orders/{id}', [App\Http\Controllers\OrderController::class, 'show']);
+        Route::post('/orders/{id}/pay', [App\Http\Controllers\OrderController::class, 'uploadProof']);
     });
 
     /* --- KHUSUS ADMIN (Bisa Tambah, Edit, Hapus) --- */
@@ -48,5 +52,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('authors', AuthorController::class)->except(['index', 'show']);
         Route::apiResource('genres', GenreController::class)->except(['index', 'show']);
         Route::apiResource('segmentations', SegmentationController::class)->except(['index', 'show']);
+        Route::get('/admin/orders', [App\Http\Controllers\OrderController::class, 'indexAdmin']);
+        Route::get('/admin/orders/{id}', [App\Http\Controllers\OrderController::class, 'showAdmin']);
+        Route::patch('/admin/orders/{id}', [App\Http\Controllers\OrderController::class, 'updateStatus']);
     });
 });

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Users, Tags, Layers, LogOut } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Users, Tags, Layers, LogOut, Banknote } from 'lucide-react';
 
 const AdminLayout = () => {
     const navigate = useNavigate();
@@ -20,10 +20,10 @@ const AdminLayout = () => {
     const menuItems = [
         { path: '/admin/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
         { path: '/admin/books', label: 'Manajemen Buku', icon: <BookOpen size={20} /> },
-        // Menu placeholder untuk pengembangan selanjutnya
         { path: '/admin/authors', label: 'Penulis', icon: <Users size={20} /> },
         { path: '/admin/genres', label: 'Kategori', icon: <Tags size={20} /> },
         { path: '/admin/segmentations', label: 'Segmentasi', icon: <Layers size={20} /> },
+        { path: '/admin/transactions', label: 'Transaksi', icon: <Banknote size={20} /> },
     ];
 
     return (
