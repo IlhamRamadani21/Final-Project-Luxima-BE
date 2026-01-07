@@ -337,21 +337,6 @@ const BookForm = () => {
                               />
                               <FieldError fieldName="harga" />
                            </div>
-                           {/* Stok */}
-                           <div className="col-md-6">
-                              <label className="form-label fw-semibold text-secondary">
-                                 Stok <span className="text-danger">*</span>
-                              </label>
-                              <input
-                                 type="number"
-                                 name="stok"
-                                 className={`form-control ${isInvalid("stok")}`}
-                                 placeholder="0"
-                                 value={formData.catatan}
-                                 onChange={handleChange}
-                              />
-                              <FieldError fieldName="stok" />
-                           </div>
                         </div>
                         {/* Best Seller Switch */}
                         <div className="form-check form-switch mt-4 p-3 bg-warning bg-opacity-10 rounded border border-warning border-opacity-25 d-flex align-items-center">
