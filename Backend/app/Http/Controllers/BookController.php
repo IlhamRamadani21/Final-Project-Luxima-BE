@@ -8,15 +8,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+// Tambahkan Import ini untuk menangkap error database
+use Illuminate\Database\QueryException; 
 
 class BookController extends Controller
 {
     public function index(Request $request)
     {
-        // Mengambil semua buku, sekaligus memuat relasi
         $query = Book::with(['segmentasi', 'kategori', 'author']);
 
-        // Logic Search
         if ($request->has('search') && $request->search != '') {
             $keyword = $request->search;
             $query->where(function ($q) use ($keyword) {
@@ -28,7 +28,6 @@ class BookController extends Controller
             });
         }
 
-        // Filter Best Seller
         if ($request->has('is_best_seller') && $request->is_best_seller == '1') {
             $query->where('is_best_seller', true);
         }
@@ -42,7 +41,6 @@ class BookController extends Controller
         ], 200);
     }
 
-    // Menambah buku baru
     public function store(Request $request)
     {
         try {
@@ -101,22 +99,25 @@ class BookController extends Controller
         }
     }
 
-    // Detail Buku
     public function show($id)
     {
         $book = Book::with(['segmentasi', 'kategori', 'author'])->find($id);
 
         if (! $book) {
-            return response()->json(['message' => 'Buku tidak ditemukan'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Buku tidak ditemukan',
+                'data' => null
+            ], 404);
         }
 
         return response()->json([
             'success' => true,
+            'message' => "Detail buku berhasil diambil: {$id}",
             'data' => $book
         ], 200);
     }
 
-    // Update Buku
     public function update(Request $request, $id)
     {
         $book = Book::find($id);
@@ -157,7 +158,6 @@ class BookController extends Controller
 
             $validatedData = $request->validate($rules, $messages);
 
-
             if (isset($validatedData['catatan'])) {
                 $validatedData['stok'] = (int)$validatedData['catatan'];
             }
@@ -186,24 +186,49 @@ class BookController extends Controller
         }
     }
 
-    // Hapus Buku
+    // --- PERBAIKAN UTAMA DI SINI ---
     public function destroy($id)
     {
         $book = Book::find($id);
 
         if (! $book) {
-            return response()->json(['message' => 'Buku tidak ditemukan'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Buku tidak ditemukan',
+                'data' => null
+            ], 404);
         }
 
-        if ($book->cover_buku && Storage::disk('public')->exists($book->cover_buku)) {
-            Storage::disk('public')->delete($book->cover_buku);
+        try {
+            // Coba hapus gambar dulu
+            if ($book->cover_buku && Storage::disk('public')->exists($book->cover_buku)) {
+                Storage::disk('public')->delete($book->cover_buku);
+            }
+
+            // Coba hapus data
+            $book->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Buku berhasil dihapus',
+                'data' => null
+            ], 200);
+
+        } catch (QueryException $e) {
+            // Tangkap Error Constraint Violation (Foreign Key)
+            // Error Code 23000 biasanya berarti data sedang dipakai di tabel lain (order_details)
+            if ($e->getCode() == "23000") {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus: Buku ini sudah ada di riwayat transaksi pembeli. Data tidak boleh dihapus demi arsip transaksi.',
+                ], 409); // 409 Conflict
+            }
+
+            // Error database lain yang tidak terduga
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan server saat menghapus data.',
+            ], 500);
         }
-
-        $book->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Buku berhasil dihapus'
-        ], 200);
     }
 }
