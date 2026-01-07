@@ -79,7 +79,6 @@ const BookForm = () => {
                   harga: book.harga || "",
                   is_best_seller:
                      book.is_best_seller === 1 || book.is_best_seller === true,
-                  stok: book.stok || "",
                   penerbit: book.penerbit || "",
                   tahun_terbit: book.tahun_terbit || "",
                   hal: book.hal || "",
